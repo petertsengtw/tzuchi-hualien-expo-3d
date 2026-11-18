@@ -948,17 +948,17 @@ function enterWalk() {
   }
   if (!spot) spot = [5.4, 17.6];
   walkSt.th = th; walkSt.pitch = -.04; const f = fwdOf(), pos = new THREE.Vector3(spot[0], EYE, spot[1]);
-  camera.fov = WALK_FOV; camera.updateProjectionMatrix(); controls.enabled = false; controls.minPolarAngle = .01; controls.maxPolarAngle = Math.PI - .01; controls.minDistance = .2;
+  controls.enabled = false; controls.minPolarAngle = .01; controls.maxPolarAngle = Math.PI - .01; controls.minDistance = .2;
   labels.forEach(l => l.visible = false); closeSheet(); if (window.zoneToast) zoneToast('走進展場：推搖桿前進，拖曳畫面轉頭，按 ⌂ 回到俯瞰');
-  flyTo(pos.toArray(), pos.clone().add(f).toArray(), 800);
+  flyTo(pos.toArray(), pos.clone().add(f).toArray(), 2200, WALK_FOV);   // 慢慢走進展場（原本 0.8 秒太快）；視野角度同時漸變
 }
 function exitWalk() {
   if (!walkSt.on) return; walkSt.on = false; document.body.classList.remove('walking');
   camera.fov = ORBIT_FOV; camera.updateProjectionMatrix(); controls.enabled = true; controls.minPolarAngle = 0; controls.maxPolarAngle = Math.PI/2 - .04; controls.minDistance = .6;
   labels.forEach(l => l.visible = true);
 }
-function flyTo(pos, tgt, ms=900) {
-  fly = { p0:camera.position.clone(), t0:controls.target.clone(), p1:new THREE.Vector3(...pos), t1:new THREE.Vector3(...tgt), s:performance.now(), ms };
+function flyTo(pos, tgt, ms=900, fov) {   // fov：選填，鏡頭飛行時視野角度一起漸變（進入眼高模式時用，避免畫面突然變廣）
+  fly = { p0:camera.position.clone(), t0:controls.target.clone(), p1:new THREE.Vector3(...pos), t1:new THREE.Vector3(...tgt), s:performance.now(), ms, f0:camera.fov, f1:fov };
 }
 function setView(name, instant) {
   exitWalk();
@@ -1087,14 +1087,14 @@ addEventListener('keydown', e => { if (e.key === 'Escape') { closeSheet(); drawe
     const m = Math.min(1, Math.hypot(dx, dy)/R), dead = .14, mm = m < dead ? 0 : (m - dead)/(1 - dead);    // 中間一小圈不動，避免手指微抖
     joy.x = m ? dx/(m*R)*mm : 0; joy.y = m ? dy/(m*R)*mm : 0;
   };
-  base.addEventListener('pointerdown', e => { e.preventDefault(); pid = e.pointerId; try { base.setPointerCapture(pid); } catch (err) {} base.classList.add('on'); closeSheet(); if (!walkSt.on) enterWalk(); else fly = null; setJoy(e); });
+  base.addEventListener('pointerdown', e => { e.preventDefault(); pid = e.pointerId; try { base.setPointerCapture(pid); } catch (err) {} base.classList.add('on'); closeSheet(); if (!walkSt.on) enterWalk(); setJoy(e); });   // 進場動畫還在飛時再按搖桿不打斷它，飛完才開始移動
   base.addEventListener('pointermove', e => { if (e.pointerId === pid) setJoy(e); });
   const end = e => { if (e.pointerId !== pid) return; pid = null; joy.x = joy.y = 0; knob.style.transform = ''; base.classList.remove('on'); };
   ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => base.addEventListener(t, end));
   // 鍵盤（電腦）
   const mv = { f:0, b:0, l:0, r:0 };
   const KEYS = { w:'f', ArrowUp:'f', s:'b', ArrowDown:'b', a:'l', ArrowLeft:'l', d:'r', ArrowRight:'r' };
-  addEventListener('keydown', e => { const k = KEYS[e.key]; if (k && !e.metaKey && !e.ctrlKey && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) { mv[k] = 1; if (!walkSt.on) enterWalk(); else fly = null; e.preventDefault(); } });
+  addEventListener('keydown', e => { const k = KEYS[e.key]; if (k && !e.metaKey && !e.ctrlKey && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) { mv[k] = 1; if (!walkSt.on) enterWalk(); e.preventDefault(); } });
   addEventListener('keyup', e => { const k = KEYS[e.key]; if (k) mv[k] = 0; });
   window.stepMove = dt => {
     const f = Math.max(-1, Math.min(1, mv.f - mv.b - joy.y)), r = Math.max(-1, Math.min(1, mv.r - mv.l + joy.x)); if (Math.abs(f) < 1e-3 && Math.abs(r) < 1e-3) return;
@@ -1145,6 +1145,7 @@ let last = performance.now();
   if (fly) {
     const k = Math.min(1, (now-fly.s)/fly.ms), e = still ? 1 : k*k*(3-2*k);
     camera.position.lerpVectors(fly.p0, fly.p1, e); controls.target.lerpVectors(fly.t0, fly.t1, e);
+    if (fly.f1 !== undefined) { camera.fov = fly.f0 + (fly.f1 - fly.f0)*e; camera.updateProjectionMatrix(); }
     if (k >= 1) fly = null;
   }
   stepMove(Math.min(.1, raw));
