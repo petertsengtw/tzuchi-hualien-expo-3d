@@ -1,0 +1,5 @@
+# macOS
+.DS_Store
+
+# 由 build_deploy.py 產生的壓縮檔（內容與 expo-deploy/ 相同，可隨時重建）
+expo-deploy.zip

@@ -1,0 +1,1129 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>花蓮慈濟醫學中心｜互動展場</title>
+<style>
+  :root{
+    --navy:#17336b; --navy-2:#0f2550; --blue:#2f7fd1; --wood:#d9b98a; --ink:#1c2533; --muted:#667085;
+    --paper:#ffffff; --line:#e3e7ee; --accent:#f5b301; --green:#2e9e4f;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:#dfe3e8;color:var(--ink);
+    font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  canvas#stage{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+  button{font:inherit;color:inherit;cursor:pointer}
+
+  .top{position:fixed;left:0;right:0;top:0;display:flex;align-items:center;gap:12px;padding:12px 16px;pointer-events:none;z-index:5}
+  .brand{pointer-events:auto;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border:1px solid var(--line);
+    border-radius:14px;padding:8px 14px;box-shadow:0 4px 18px rgba(16,24,40,.08)}
+  .brand b{display:block;font-size:16px;color:var(--navy);letter-spacing:.02em}
+  .brand span{font-size:12px;color:var(--muted)}
+  .views{pointer-events:auto;margin-left:auto;display:flex;gap:6px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);
+    border:1px solid var(--line);border-radius:14px;padding:5px;box-shadow:0 4px 18px rgba(16,24,40,.08)}
+  .views button{border:0;background:transparent;border-radius:10px;padding:8px 12px;font-size:14px;white-space:nowrap}
+  .views button[aria-pressed="true"]{background:var(--navy);color:#fff}
+  .views .back{display:inline-flex;align-items:center;border-radius:10px;padding:8px 12px;font-size:14px;white-space:nowrap;text-decoration:none;background:#eef2f8;color:var(--navy);font-weight:600}
+  .views .back:hover{background:#dfe7f3}
+  .views button:hover:not([aria-pressed="true"]){background:#eef2f8}
+  .brand b,.brand span{white-space:nowrap}
+  @media (max-width:640px){
+    .top{flex-direction:column;align-items:stretch;gap:8px;padding:10px 12px}
+    .brand{padding:7px 12px;align-self:flex-start}
+    .views{margin-left:0;justify-content:space-between}
+    .views button{flex:1;padding:8px 6px}
+    .views .back{flex:1;justify-content:center;padding:8px 6px}
+  }
+
+  .guide{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:6;width:min(640px,calc(100vw - 24px));
+    background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:16px;padding:14px 16px;
+    box-shadow:0 10px 36px rgba(16,24,40,.2);transition:opacity .3s,transform .3s}
+  .guide.off{opacity:0;transform:translate(-50%,24px);pointer-events:none}
+  .guide b{font-size:14px;color:var(--navy)}
+  .guide ul{list-style:none;margin:10px 0 12px;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .guide li{display:flex;gap:8px;align-items:center;background:#f3f6fb;border-radius:10px;padding:8px 10px}
+  .guide i{font-style:normal;font-size:20px;color:var(--navy);flex:none;width:24px;text-align:center}
+  .guide li>span{display:flex;flex-direction:column;font-size:12px;color:var(--muted);line-height:1.4}
+  .guide em{font-style:normal;font-weight:700;font-size:14px;color:var(--ink)}
+  .guide .t{display:none}
+  @media (hover:none),(pointer:coarse){.guide .m{display:none}.guide .t{display:inline}}
+  @media (max-width:640px){.guide ul{grid-template-columns:repeat(2,1fr)}}
+  @media (min-width:860px){.guide{left:auto;right:16px;transform:none;width:min(520px,46vw)}.guide.off{transform:translateY(24px)}.guide ul{grid-template-columns:repeat(2,1fr)}}   /* 電腦版放在右下角，不擋住入口的院長 */
+  .guide button{display:block;width:100%;border:0;background:var(--navy);color:#fff;border-radius:10px;padding:10px;font-size:15px;font-weight:600}
+
+  /* 清單抽屜 */
+  .drawer{position:fixed;top:0;bottom:0;left:0;width:min(340px,86vw);background:var(--paper);z-index:20;transform:translateX(-102%);
+    transition:transform .28s ease;box-shadow:8px 0 30px rgba(16,24,40,.18);display:flex;flex-direction:column}
+  .drawer.open{transform:none}
+  .drawer header{padding:16px 16px 10px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .drawer header b{font-size:17px;color:var(--navy)}
+  .drawer header button{margin-left:auto;border:0;background:#eef2f8;border-radius:10px;width:36px;height:36px;font-size:18px}
+  .drawer .body{overflow:auto;padding:8px 10px 24px;flex:1}
+  .drawer h3{font-size:12px;color:var(--muted);margin:14px 8px 6px;font-weight:600;letter-spacing:.08em}
+  .row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:transparent;border-radius:10px;padding:9px 8px}
+  .row:hover{background:#f2f5fa}
+  .row .tag{flex:none;min-width:34px;height:26px;padding:0 7px;border-radius:13px;display:grid;place-items:center;font-size:12px;font-weight:700;
+    background:#e8f0fb;color:var(--navy);font-variant-numeric:tabular-nums}
+  .row .tag.z{background:var(--green);color:#fff;border-radius:50%;min-width:26px;padding:0}
+  .row .nm{font-size:15px}
+  .row .sub{margin-left:auto;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+  /* 資訊卡 */
+  .sheet{position:fixed;z-index:15;background:var(--paper);box-shadow:0 -8px 40px rgba(16,24,40,.22);transition:transform .3s ease;
+    left:0;right:0;bottom:0;max-height:54vh;border-radius:18px 18px 0 0;transform:translateY(105%);display:flex;flex-direction:column}
+  .sheet.open{transform:none}
+  @media (min-width:860px){
+    .sheet{left:auto;right:16px;top:76px;bottom:16px;width:380px;max-height:none;border-radius:18px;transform:translateX(calc(100% + 24px))}
+  }
+  .sheet .head{padding:16px 18px 12px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start}
+  .sheet .code{flex:none;background:var(--navy);color:#fff;font-weight:700;border-radius:10px;padding:6px 10px;font-size:14px;font-variant-numeric:tabular-nums}
+  .sheet .code.z{background:var(--green)}
+  .sheet h2{margin:0;font-size:20px;line-height:1.3;color:var(--navy-2)}
+  .sheet .where{font-size:13px;color:var(--muted);margin-top:3px}
+  .sheet .x{margin-left:auto;flex:none;border:0;background:#eef2f8;border-radius:10px;width:36px;height:36px;font-size:18px}
+  .sheet .cont{padding:14px 18px 22px;overflow:auto}
+  .sheet p{margin:0 0 12px;font-size:15px;line-height:1.7}
+  .note{background:#fff8e1;border:1px solid #f3dc9a;border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.6;color:#6b5200;margin-bottom:14px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+  .chips button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font-size:13px;font-variant-numeric:tabular-nums}
+  .chips button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .lbl{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.08em;margin:4px 0 8px}
+  .shots video{width:100%;border-radius:10px;display:block;margin-bottom:8px;background:#000}
+  .shots img{width:100%;border-radius:10px;border:1px solid var(--line);display:block;margin-bottom:8px;background:#f3f4f6}
+  .nav2{display:flex;gap:8px;margin-top:6px}
+  .nav2 button{flex:1;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px;font-size:14px}
+  .nav2 button:hover{background:#f2f5fa}
+  .say{position:fixed;z-index:7;left:0;top:0;transform:translate(-50%,-100%) scale(.85);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+    background:#fff;color:var(--navy);font-weight:800;font-size:22px;letter-spacing:.06em;padding:10px 20px;border-radius:18px;border:2px solid var(--navy);
+    box-shadow:0 6px 20px rgba(16,24,40,.22);white-space:nowrap}
+  .say::after{content:"";position:absolute;left:50%;bottom:-11px;width:16px;height:16px;background:#fff;border-right:2px solid var(--navy);border-bottom:2px solid var(--navy);transform:translateX(-50%) rotate(45deg)}
+  .say.on{opacity:1;transform:translate(-50%,-100%) scale(1)}
+  @media (max-width:520px){.say{font-size:17px;padding:8px 14px}}
+  /* 導覽與移動按鈕 */
+  .rb{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.94);backdrop-filter:blur(8px);color:var(--navy);
+    font-size:20px;line-height:1;display:grid;place-items:center;box-shadow:0 4px 14px rgba(16,24,40,.16);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+  .rb:active,.rb.on{background:var(--navy);color:#fff}
+  .padOld{position:fixed;z-index:5;left:calc(12px + env(safe-area-inset-left));bottom:calc(16px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(2,46px);gap:6px;
+    grid-template-areas:". f ." "l b r"}
+  .pad [data-d=f]{grid-area:f}.pad [data-d=b]{grid-area:b}.pad [data-d=l]{grid-area:l}.pad [data-d=r]{grid-area:r}
+  .side{position:fixed;z-index:5;right:calc(12px + env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px}
+  .side .rb{font-size:18px;font-weight:700}
+  .side .rb small{display:block;font-size:10px;font-weight:600;margin-top:1px}
+  .dock{position:fixed;z-index:5;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:8px;max-width:calc(100vw - 340px)}
+  .chips2{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px}
+  .chips2::-webkit-scrollbar{display:none}
+  .chips2 button{flex:none;border:1px solid var(--line);background:rgba(255,255,255,.95);color:var(--navy);border-radius:999px;padding:8px 13px;font-size:14px;font-weight:600;white-space:nowrap;box-shadow:0 3px 10px rgba(16,24,40,.12)}
+  .chips2 button b{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--green);color:#fff;font-size:12px;margin-right:6px}
+  .joy{display:block;position:fixed;z-index:5;left:calc(14px + env(safe-area-inset-left));bottom:calc(18px + env(safe-area-inset-bottom));width:116px;height:116px;border-radius:50%;
+    background:rgba(255,255,255,.55);border:2px solid rgba(23,51,107,.32);backdrop-filter:blur(6px);box-shadow:0 4px 16px rgba(16,24,40,.18);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+  .joy::before{content:"";position:absolute;inset:30px;border-radius:50%;border:1.5px dashed rgba(23,51,107,.22)}
+  .joy .knob{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:rgba(23,51,107,.88);border:3px solid #fff;box-shadow:0 3px 10px rgba(16,24,40,.35);will-change:transform}
+  .joy.on{background:rgba(255,255,255,.75)}
+  .pill{width:auto;border-radius:23px;padding:0 18px;font-size:16px;font-weight:700;letter-spacing:.04em;white-space:nowrap;background:var(--navy);color:#fff;border-color:var(--navy)}
+  .ztoast{position:fixed;z-index:6;left:50%;transform:translateX(-50%) translateY(8px);bottom:calc(146px + env(safe-area-inset-bottom));background:rgba(23,51,107,.92);color:#fff;font-weight:700;font-size:16px;
+    padding:8px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;white-space:nowrap}
+  .ztoast.on{opacity:1;transform:translateX(-50%)}
+  body.walking #zIn,body.walking #zOut{display:none}
+  @media (min-width:860px){.joy{left:calc(80px + env(safe-area-inset-left))}}   /* 電腦版搖桿再往右一點，離螢幕邊緣遠一些 */
+  .tm{display:none}
+  @media (max-width:859px){
+    .dock{left:0;right:0;transform:none;max-width:none;top:132px;bottom:auto;padding:0 12px;pointer-events:none}
+    .dock .rb{display:none}.chips2{pointer-events:auto}
+    .tm{display:flex;position:fixed;z-index:5;left:calc(142px + env(safe-area-inset-left));bottom:calc(18px + env(safe-area-inset-bottom));gap:8px}   /* 放在搖桿和右側按鈕之間 */
+    body.sheetopen .joy,body.sheetopen .ztoast,body.sheetopen .side,body.sheetopen .tm,body.sheetopen .dock{display:none}
+  }
+  .err{position:fixed;inset:0;display:none;place-items:center;padding:24px;text-align:center;z-index:30;background:#dfe3e8}
+</style>
+</head>
+<body>
+<canvas id="stage"></canvas>
+
+<div class="top">
+  <div class="brand"><b>花蓮慈濟醫學中心</b><span>台灣醫療科技展・互動展場（原型）</span></div>
+  <div class="views" role="group" aria-label="視角">
+    <a class="back" href="https://hlm.tzuchi.com.tw/home/index.php/expo" aria-label="回到台灣醫療科技展花蓮慈院專網">‹ 回專網</a>
+    <button id="bList">☰ 清單</button>
+    <button id="bHelp" aria-label="操作說明">？</button>
+    <button data-view="hualien" aria-pressed="true">花蓮展區</button>
+    <button data-view="all" aria-pressed="false">全景</button>
+    <button data-view="top" aria-pressed="false">俯視</button>
+  </div>
+</div>
+<div class="guide" id="hint" role="dialog" aria-label="操作說明">
+  <b>操作說明</b>
+  <ul>
+    <li><i>↻</i><span><em>轉動／轉頭</em><span class="m">按住左鍵拖曳</span><span class="t">單指拖曳</span></span></li>
+    <li><i>⤢</i><span><em>縮放</em><span class="m">滾動滾輪</span><span class="t">雙指開合</span></span></li>
+    <li><i>◎</i><span><em>移動</em><span class="m">W A S D 或方向鍵</span><span class="t">按住左下角圓盤推動</span></span></li>
+    <li><i>☝</i><span><em>看介紹</em><span>點海報；下方「下一區」快速換區</span></span></li>
+  </ul>
+  <button id="gOk">知道了</button>
+</div>
+
+<aside class="drawer" id="drawer" aria-label="展區清單">
+  <header><b>花蓮展區清單</b><button id="bClose" aria-label="關閉">✕</button></header>
+  <div class="body" id="list"></div>
+</aside>
+
+<section class="sheet" id="sheet" aria-live="polite">
+  <div class="head">
+    <div class="code" id="sCode"></div>
+    <div><h2 id="sTitle"></h2><div class="where" id="sWhere"></div></div>
+    <button class="x" id="sX" aria-label="關閉">✕</button>
+  </div>
+  <div class="cont" id="sCont"></div>
+</section>
+
+<div class="joy" id="joy" aria-label="移動搖桿：按住並往想去的方向推，推越遠走越快"><div class="knob" id="knob"></div></div>
+<div class="side">
+  <button class="rb" id="zIn" aria-label="放大">＋</button><button class="rb" id="zOut" aria-label="縮小">－</button>
+  <button class="rb" id="bHome" aria-label="回到起點">⌂</button>
+</div>
+<div class="dock"><button class="rb" id="tPrev" aria-label="上一區">‹</button><div class="chips2" id="chips"></div><button class="rb" id="tNext" aria-label="下一區">›</button></div>
+<div class="tm"><button class="rb" id="tPrev2" aria-label="上一區">‹</button><button class="rb pill" id="tNext2" aria-label="下一區">下一區 ›</button></div>
+<div class="ztoast" id="zt"></div>
+<div class="say" id="say">歡迎參觀花蓮慈院展區</div>
+<div class="say" id="say2"></div>
+<div class="say" id="say3"></div>
+<div class="err" id="err"><div><b>3D 元件沒有載入成功</b><p>請確認網路連線後重新整理。</p></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="content.js"></script>
+<script>
+"use strict";
+if (!window.THREE) { document.getElementById('err').style.display = 'grid'; throw new Error('three missing'); }
+
+/* ───────── 資料：座標單位為公分，原點在展場左下角（對照平面圖的 0–4500 × 0–1500） ───────── */
+const A = 'assets/';
+// [編號, 單位, x, y, 朝向, 所在牆]
+const POSTERS = [
+  ['A01','秧悦',470,196,'S','st'],
+  ['A02','秧悦',518,276,'E','st'],['A03','秧悦',518,375,'E','st'],['A04','粒線體',518,476,'E','st'],
+  ['A05','粒線體',518,576,'E','st'],['A06','永續',518,675,'E','st'],
+  ['A07','',344,748,'N','st'],
+  ['A08','醫事室',160,1455,'W','w1'],['A09','醫事室',160,1350,'W','w1'],['A10','遠傳',160,1245,'W','w1'],
+  ['A11','EBM',160,1455,'E','w1'],['A12','多體精微',160,1350,'E','w1'],['A13','鈦隼',160,1245,'E','w1'],
+  ['A14','國醫中心',375,1035,'N','w2'],['A15','國醫中心',525,1035,'N','w2'],
+  ['A16','遠醫',375,1035,'S','w2'],['A17','細胞',525,1035,'S','w2'],
+  ['A18-1','慈大',835,1455,'W','w3'],['A18','慈大',835,1350,'W','w3'],['A19','慈大',835,1245,'W','w3'],
+  ['A20-1','慈大',835,1455,'E','w3'],['A20','慈大',835,1350,'E','w3'],['A21','慈大',835,1245,'E','w3'],
+  ['A22','研究部',835,880,'W','w4'],['A23','研究部',835,780,'W','w4'],
+  ['A27','IMOSA',835,880,'E','w4'],['A28','研究部',835,780,'E','w4'],
+  ['A24','AI中心',835,450,'W','w5'],['A25','AI中心',835,350,'W','w5'],['A26','史坦賽爾',835,250,'W','w5'],
+  ['A29','血透',835,450,'E','w5'],['A30','工務',835,350,'E','w5'],['A31','宏潤',835,250,'E','w5'],
+  ['A32','一曜',1200,245,'W','w6'],['A33','創新研發中心',1200,345,'W','w6'],['A34','創新研發中心',1200,444,'W','w6'],
+  ['A35','創新研發中心',1200,541,'W','w6'],['A36','創新研發中心',1200,640,'W','w6'],
+  ['A47','骨髓中心',1965,700,'N','sb',2.0],
+  ['A48','骨髓中心',2210,854,'W','sl',2.0],
+  ['A37','急診',1165,1052,'W','w7'],['A38','急診',1165,1164,'W','w7'],
+  ['A39','護理部',1306,1275,'N','w8'],['A40','護理部',1447,1275,'N','w8'],['A41','中醫部',1587,1275,'N','w8'],
+];
+const WALL_NAME = {
+  st:'儲藏室外牆', w1:'左後方展示牆', w2:'國醫中心展示牆', w3:'後方中央展示牆', w4:'中央展示牆',
+  w5:'前方中央展示牆（海報區入口）', w6:'右側展示牆（與台中慈院相鄰）', w7:'右後方展示牆', w8:'互動體驗區前展示牆', sb:'舞台後方牆面', sl:'舞台前方側牆'
+};
+const WALL_SHOTS = { st:['r_entry'], w5:['r_entry'], w6:['r_entry'], w3:['p_tzu'], w4:['p_tzu'], w1:['p_counter'], w2:['p_counter'] };
+const FACE_NAME = { N:'朝後方', S:'朝前方走道', E:'朝右', W:'朝左' };
+// 功能區：[代號, 名稱, x, y, 說明, 實景圖]
+const ZONES = [
+  ['G','形象打卡牆',215,60,'展場左前方的灰色拱門立柱，正面是大型主視覺（海報位置 A42），面向 6 米走道，是花蓮展區的入口地標。',['r_entry','p_entry']],
+  ['E','舞台',95,430,'展場左側的小舞台，背牆有 65 吋螢幕（海報位置 A43）與「醫愛四十」主視覺，前方有兩排座椅。',['r_edu','p_wall']],
+  ['F','小櫃台（品牌牆）',70,905,'左側的接待小櫃台，旁邊是合作夥伴品牌燈箱（海報位置 A45、A45-1）。',['r_wall','p_brand','p_desk']],
+  ['A','儲藏室',387,470,'位於展區中央偏左，內有洗手台與飲水機。外牆是 A01–A07 的海報位置。',[]],
+  ['B','接待專區',560,1300,'白色弧形主牆的左端下方，設有高腳桌椅，牆上是《超仁》書牆（海報位置 A46）。',['p_book']],
+  ['D','洽談區',985,1065,'展區中央的洽談座位，位在慈大與研究部展示牆之間。',['p_tzu']],
+  ['C','互動體驗區',1420,1420,'展區右後方的長桌體驗區，前方展示牆是護理部與中醫部。',[]],
+  ['H','體驗區-髓機配對站',2090,770,'位於大舞台後牆旁的骨髓中心展位，海報位置 A47（舞台後牆右側）與 A48（舞台前方側牆）。',[],[-3.2,5.4,-8.4]],
+];
+const OTHERS = [['大舞台',2250,560,4.9],['台中慈濟醫院',1560,1090,3.6],['靜思書軒・大愛感恩科技',2250,1430,3.6],['大林慈濟醫院',3320,640,3.6],['台北慈濟醫學中心',3950,1000,3.6]];
+
+/* ───────── 場景 ───────── */
+const canvas = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xc6c7c9);
+const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 400);
+const controls = new THREE.OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.dampingFactor = .08;
+controls.maxPolarAngle = Math.PI/2 - .04; controls.minDistance = .6; controls.maxDistance = 75;
+controls.screenSpacePanning = false;
+
+// 燈光：柔和的展場頂光＋一盞會投影的主光
+scene.add(new THREE.HemisphereLight(0xffffff, 0xa9adb5, .78));
+const sun = new THREE.DirectionalLight(0xffffff, .62); sun.position.set(12, 34, 26); sun.target.position.set(22.5, 0, 7.5);
+sun.castShadow = true; sun.shadow.mapSize.set(innerWidth < 700 ? 2048 : 4096, innerWidth < 700 ? 2048 : 4096);
+Object.assign(sun.shadow.camera, { left:-30, right:30, top:22, bottom:-22, near:1, far:90 });
+sun.shadow.bias = -.0005; sun.shadow.normalBias = .04; sun.shadow.radius = 3; scene.add(sun, sun.target);
+
+const V = (x, y, h=0) => new THREE.Vector3(x/100, h, (1500-y)/100);
+const loader = new THREE.TextureLoader();
+const tex = name => { const t = loader.load(A+name); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t; };
+// 程序生成的材質貼圖（木紋、清水模、地毯、草皮）
+function canvasTex(w, h, draw, rx=1, ry=1) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry); t.anisotropy = 8; return t;
+}
+let seed = 7; const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+function woodDraw(vertical) { return (g, w, h) => {
+  g.fillStyle = '#dcc198'; g.fillRect(0, 0, w, h);
+  const L = vertical ? w : h, S = vertical ? h : w;
+  for (let i = 0; i < 150; i++) {
+    const p = rnd()*L, a = .05 + rnd()*.13, wob = 2 + rnd()*5, ph = rnd()*6;
+    g.strokeStyle = rnd() > .3 ? `rgba(150,112,62,${a})` : `rgba(246,228,196,${a})`; g.lineWidth = .6 + rnd()*1.8; g.beginPath();
+    for (let q = 0; q <= S; q += 16) { const o = p + Math.sin(q/70 + ph)*wob; vertical ? (q ? g.lineTo(o, q) : g.moveTo(o, q)) : (q ? g.lineTo(q, o) : g.moveTo(q, o)); }
+    g.stroke();
+  }
+  if (vertical) { g.fillStyle = '#f4f4f2'; g.fillRect(0, 0, 9, h); g.fillRect(0, 0, w, 7); g.fillRect(0, h-12, w, 12); }   // 櫃檯的白色鋁框
+}; }
+const T = {
+  woodH: canvasTex(512, 512, woodDraw(false), .5, 1),
+  woodV: canvasTex(512, 512, woodDraw(true), 1, 1/.95),
+  concrete: canvasTex(512, 512, (g, w, h) => {
+    g.fillStyle = '#aaa399'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 900; i++) { const r = 6 + rnd()*30; g.fillStyle = rnd() > .5 ? `rgba(255,250,240,${rnd()*.022})` : `rgba(60,52,44,${rnd()*.022})`; g.beginPath(); g.arc(rnd()*w, rnd()*h, r, 0, 7); g.fill(); }
+    for (let i = 0; i < 5000; i++) { g.fillStyle = `rgba(${rnd() > .5 ? '255,255,255' : '40,36,30'},${rnd()*.06})`; g.fillRect(rnd()*w, rnd()*h, 1.5, 1.5); }
+  }, .6, .6),
+  carpet: canvasTex(256, 256, (g, w, h) => {
+    g.fillStyle = '#34363a'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 9000; i++) { const v = 30 + rnd()*70 | 0; g.fillStyle = `rgba(${v},${v},${v+4},${.25 + rnd()*.4})`; g.fillRect(rnd()*w, rnd()*h, 2, 1.4); }
+  }, 30, 10),
+  grass: canvasTex(256, 256, (g, w, h) => {
+    g.fillStyle = '#4c9a2a'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 7000; i++) { g.fillStyle = `rgba(${20 + rnd()*60 | 0},${110 + rnd()*90 | 0},${10 + rnd()*40 | 0},.5)`; g.fillRect(rnd()*w, rnd()*h, 1.4, 3); }
+  }, 4, 4),
+};
+const std = (o) => new THREE.MeshStandardMaterial(Object.assign({ roughness:.82, metalness:0 }, o));
+const M = {
+  white: std({ color:0xf6f6f4, side:THREE.DoubleSide, roughness:.7 }),
+  wood:  std({ map:T.woodV, side:THREE.DoubleSide }),
+  woodH: std({ map:T.woodH, side:THREE.DoubleSide }),
+  gray:  std({ map:T.concrete, side:THREE.DoubleSide, roughness:.95 }),
+  navy:  std({ color:0x17336b }),
+  dark:  std({ color:0x111316, roughness:.35 }),
+  out:   std({ color:0xeceded, roughness:.42 }),
+  chair: std({ color:0xfafafa, roughness:.5 }),
+  metal: std({ color:0xc9ccd1, roughness:.35, metalness:.6 }),
+  leaf:  std({ color:0x3f8f2f, flatShading:true }),
+  teal:  std({ color:0x1f7fa6 }),
+};
+['white','navy','dark','out','chair','metal','leaf','teal'].forEach(k => M[k].color.convertSRGBToLinear());
+const ROT = { S:0, E:Math.PI/2, W:-Math.PI/2, N:Math.PI };
+const NRM = { S:[0,1], E:[1,0], W:[-1,0], N:[0,-1] };   // 以 (x, z) 表示
+
+// 地板：展館亮面地坪＋深色地毯＋兩塊圓形草皮
+{
+  const hall = new THREE.Mesh(new THREE.PlaneGeometry(170, 120), M.out);
+  hall.rotation.x = -Math.PI/2; hall.position.set(22.5, -.03, 7.5); hall.receiveShadow = true; scene.add(hall);
+  const f = new THREE.Mesh(new THREE.BoxGeometry(45, .04, 15), std({ map:T.carpet, roughness:1 }));
+  f.position.set(22.5, -.02, 7.5); f.receiveShadow = true; scene.add(f);
+  [[1270, 455], [3270, 480]].forEach(([x, y]) => {
+    const c = new THREE.Mesh(new THREE.CircleGeometry(2.32, 64), std({ map:T.grass, roughness:1 }));
+    c.rotation.x = -Math.PI/2; c.position.copy(V(x, y, .012)); c.receiveShadow = true; scene.add(c);
+  });
+}
+const solids = [];
+function box(x1, y1, x2, y2, h0, h1, mat) {
+  const w = Math.abs(x2-x1)/100, h = h1-h0, d = Math.abs(y2-y1)/100, g = new THREE.BoxGeometry(w, h, d), uv = g.attributes.uv;
+  const dims = [[d,h],[d,h],[w,d],[w,d],[w,h],[w,h]];
+  for (let i = 0; i < uv.count; i++) { const f = dims[i/4 | 0]; uv.setXY(i, uv.getX(i)*f[0], uv.getY(i)*f[1]); }
+  const m = new THREE.Mesh(g, mat); m.castShadow = m.receiveShadow = true;
+  m.position.copy(V((x1+x2)/2, (y1+y2)/2, (h0+h1)/2)); scene.add(m); solids.push(m); return m;
+}
+function plane(w, h, mat, x, y, hc, face, off=0) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
+  const n = typeof face === 'number' ? [Math.sin(face), Math.cos(face)] : NRM[face];
+  m.position.copy(V(x, y, hc)); m.position.x += n[0]*off; m.position.z += n[1]*off;
+  m.rotation.y = typeof face === 'number' ? face : ROT[face]; scene.add(m); return m;
+}
+function textTex(text, opt={}) {
+  const { w=1024, h=128, color='#fff', bg=null, size=84, weight=700, family='"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif' } = opt;
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d');
+  if (bg) { g.fillStyle = bg; g.fillRect(0, 0, w, h); }
+  g.fillStyle = color; g.textAlign = 'center'; g.textBaseline = 'middle';
+  let s = size; g.font = `${weight} ${s}px ${family}`;
+  while (g.measureText(text).width > w*.94 && s > 12) { s -= 2; g.font = `${weight} ${s}px ${family}`; }
+  g.fillText(text, w/2, h/2 + s*.04);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
+}
+// 沿曲線的帶狀量體（弧牆、拱門、木質天花）
+function ribbon(ctrl, width, hb, ht, mat, samples=140) {
+  const curve = new THREE.CatmullRomCurve3(ctrl.map(p => new THREE.Vector3(p[0], p[1], 0)));
+  const pts = curve.getSpacedPoints(samples), L = curve.getLength()/100;
+  const pos = [], idx = [], uvs = [];
+  pts.forEach((p, i) => {
+    const a = pts[Math.max(0, i-1)], b = pts[Math.min(pts.length-1, i+1)];
+    const tx = b.x-a.x, ty = b.y-a.y, len = Math.hypot(tx, ty) || 1, nx = -ty/len*width/2, ny = tx/len*width/2;
+    const s = L*i/samples, B = hb(s, L), T = ht(s, L);
+    [[nx,ny,B],[-nx,-ny,B],[-nx,-ny,T],[nx,ny,T]].forEach((o, k) => { const v = V(p.x+o[0], p.y+o[1], o[2]); pos.push(v.x, v.y, v.z); uvs.push(s, [0, width/100, width/100 + (T-B), 2*width/100 + (T-B)][k]); });
+    if (i) { const q = (i-1)*4, r = i*4; for (let k = 0; k < 4; k++) { const k2 = (k+1)%4; idx.push(q+k, q+k2, r+k2, q+k, r+k2, r+k); } }
+  });
+  const e = samples*4; idx.push(0,1,2, 0,2,3, e,e+1,e+2, e,e+2,e+3);
+  let g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); g.setIndex(idx);
+  g = g.toNonIndexed(); g.computeVertexNormals();
+  const m = new THREE.Mesh(g, mat); m.castShadow = m.receiveShadow = true; scene.add(m); solids.push(m); return m;
+}
+const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x-a)/(b-a))); return t*t*(3-2*t); };
+
+// 白色弧形主牆（圓心 2250,2237，半徑 1917）＋下緣木飾條
+function signTex(zh, en) {
+  return canvasTex(2048, 420, (g, w, h) => {
+    const fam = '"Songti TC","Noto Serif TC","PMingLiU",serif';
+    // 蓮花標誌
+    g.save(); g.translate(210, 190);
+    for (let i = -3; i <= 3; i++) { g.save(); g.rotate(i*.36); g.fillStyle = i % 2 ? '#2c5fa8' : '#1c4487'; g.beginPath(); g.ellipse(0, -62, 34, 92, 0, 0, 7); g.fill(); g.restore(); }
+    g.fillStyle = '#16356f'; g.beginPath(); g.arc(0, -40, 66, 0, 7); g.fill(); g.strokeStyle = '#cfe0f6'; g.lineWidth = 6; g.stroke(); g.restore();
+    g.textBaseline = 'middle'; g.textAlign = 'left';
+    const put = (t, x, y, f) => { g.font = f; g.fillStyle = 'rgba(0,0,0,.28)'; g.fillText(t, x + 7, y + 8); g.fillStyle = '#2b2d31'; g.fillText(t, x, y); };
+    let s = 190; g.font = `900 ${s}px ${fam}`; while (g.measureText(zh).width > w - 420) { s -= 4; g.font = `900 ${s}px ${fam}`; }
+    put(zh, 390, 140, `900 ${s}px ${fam}`);
+    put(en, 394, 320, '700 84px "Helvetica Neue",Arial,sans-serif');
+  });
+}
+{
+  const pts = []; for (let i = 0; i <= 24; i++) { const x = 480 + (4020-480)*i/24; pts.push([x, 2237 - Math.sqrt(1917*1917 - (x-2250)**2)]); }
+  const legs = (s, L) => 3.45*smooth(.5, 2.6, Math.min(s, L-s));
+  ribbon(pts, 55, legs, () => 5.7, M.white, 260);
+  ribbon(pts, 75, (s, L) => Math.max(0, legs(s, L)-.3), legs, M.woodH, 260);
+  const sign = new THREE.MeshBasicMaterial({ map: signTex('佛教慈濟醫療財團法人', 'Buddhist Tzu Chi Medical Foundation'), transparent:true });
+  const sub = zh => new THREE.MeshBasicMaterial({ map: textTex(zh, { w:1024, h:128, color:'#17336b', size:96, family:'"Kaiti TC","BiauKai","DFKai-SB",serif' }), transparent:true });
+  [[2250, 0], [1000, 1], [3500, -1]].forEach(([x, side]) => {
+    const dx = x - 2250, r = Math.sqrt(1917*1917 - dx*dx), y = 2237 - r, f = Math.atan2(dx/1917, r/1917);   // 朝外的法線方向
+    const ox = dx/1917*31, oy = -r/1917*31;
+    plane(8.6, 1.76, sign, x + ox, y + oy, 4.72, f, .04);
+    if (side) plane(2.5, .31, sub(side > 0 ? '花蓮慈濟醫學中心' : '台北慈濟醫學中心'), x + ox - side*230*r/1917 - side*40, y + oy - Math.abs(dx)/1917*230 + (side ? 60 : 0), 3.72, f, .25);
+  });
+  // 牆頂的投射燈
+  const lamp = new THREE.InstancedMesh(new THREE.CylinderGeometry(.05, .07, .14, 8), M.metal, 40), o = new THREE.Object3D();
+  for (let i = 0; i < 40; i++) { const x = 560 + (3940-560)*i/39, dx = x - 2250, r = Math.sqrt(1917*1917 - dx*dx); o.position.copy(V(x + dx/1917*40, 2237 - r - r/1917*40, 5.82)); o.rotation.set(.9, Math.atan2(dx, r), 0); o.updateMatrix(); lamp.setMatrixAt(i, o.matrix); }
+  scene.add(lamp);
+}
+// 垂掛植栽：一叢低面數的綠球
+function plant(x, y, h, n=9, spread=.55) {
+  const g = new THREE.Group();
+  for (let i = 0; i < n; i++) {
+    const b = new THREE.Mesh(new THREE.IcosahedronGeometry(.09 + rnd()*.1, 0), M.leaf);
+    b.position.set((rnd()-.5)*spread*2, -rnd()*.75, (rnd()-.5)*.35); b.scale.y = 1.2 + rnd()*1.2; b.castShadow = true; g.add(b);
+  }
+  g.position.copy(V(x, y, h)); scene.add(g); return g;
+}
+// 灰色拱門（左：花蓮；右：台北）
+function grayArch(mx, label) {
+  const X = x => mx ? 4500-x : x;
+  const pts = [[135,135],[350,150],[600,195],[900,300],[1130,430],[1290,560]].map(p => [X(p[0]), p[1]]);
+  const top = (s, L) => 6.6 - 2.1*s/L;
+  ribbon(pts, 45, s => 3.6*smooth(1.75, 3.6, s), top, M.gray, 180);
+  ribbon(pts, 48, (s, L) => top(s, L) - .38, (s, L) => top(s, L) - .33, new THREE.MeshBasicMaterial({ color:0xffffff }), 180).castShadow = false;   // 燈條
+  const t = new THREE.MeshBasicMaterial({ map: textTex(label, { w:1024, h:150, size:112, family:'"Kaiti TC","BiauKai","DFKai-SB",serif' }), transparent:true });
+  plane(3.0, .44, t, X(430), 136, 4.55, mx ? -.13 : .13, .05);
+  [[640,200,5.72],[700,218,5.65],[760,240,5.58]].forEach(p => plant(X(p[0]), p[1], p[2], 8, .4));
+}
+grayArch(false, '花蓮慈濟醫學中心');
+grayArch(true, '台北慈濟醫學中心');
+// 木質天花（花蓮），以及右側三片
+ribbon([[150,1500],[170,1380],[250,1230],[400,1110],[600,1070],[760,1000],[860,860],[900,650],[930,450],[1010,290],[1150,180],[1265,160]],
+       110, () => 3.0, () => 3.3, M.woodH, 160);
+ribbon([[4323,1402],[4270,1250],[4180,1100],[4111,1019]], 110, () => 3.0, () => 3.3, M.woodH, 40);
+ribbon([[4072,676],[4200,560],[4320,450],[4362,333]], 110, () => 3.0, () => 3.3, M.woodH, 40);
+ribbon([[3253,42],[3400,80],[3560,190],[3650,412]], 110, () => 3.0, () => 3.3, M.woodH, 40);
+plant(178, 1385, 3.45, 10, .5); plant(2600, 300, 3.5, 8, .5); plant(1900, 300, 3.5, 8, .5);
+// 天花上的藍色院名牌
+function pill(zh, en, x, y, h, f) {
+  const t = canvasTex(1024, 256, (g, w, hh) => {
+    g.fillStyle = '#17336b'; g.beginPath(); g.moveTo(0, hh); g.lineTo(0, 120); g.quadraticCurveTo(0, 0, 150, 0); g.lineTo(w-150, 0); g.quadraticCurveTo(w, 0, w, 120); g.lineTo(w, hh); g.fill();
+    g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.font = '700 104px "Kaiti TC","BiauKai","DFKai-SB",serif'; g.fillText(zh, w/2, 100);
+    g.font = '700 46px Georgia,serif'; g.fillText(en, w/2, 200);
+  });
+  const m = plane(2.5, .62, new THREE.MeshBasicMaterial({ map:t, transparent:true, side:THREE.DoubleSide }), x, y, h, f); return m;
+}
+pill('花蓮慈濟醫學中心', 'Hualien Tzu Chi Medical Center', 905, 560, 3.61, -Math.PI/2 + .12);
+pill('花蓮慈濟醫學中心', 'Hualien Tzu Chi Medical Center', 1085, 215, 3.61, -.55);
+// 吊燈
+[[300,1160],[690,1040],[880,770],[915,520],[1070,240],[2050,560],[2450,560],[3350,700],[4200,560]].forEach(([x, y]) => {
+  const b = new THREE.Mesh(new THREE.IcosahedronGeometry(.19, 1), new THREE.MeshBasicMaterial({ color:0xb89f72, wireframe:true })); b.position.copy(V(x, y, 2.45)); scene.add(b);
+  const c = new THREE.Mesh(new THREE.SphereGeometry(.07, 10, 8), new THREE.MeshBasicMaterial({ color:0xfff3c4 })); c.position.copy(b.position); scene.add(c);
+  const w = new THREE.Mesh(new THREE.CylinderGeometry(.006, .006, .6, 4), M.dark); w.position.copy(V(x, y, 2.9)); scene.add(w);
+});
+// 大舞台（中央）
+box(1850, 430, 2700, 700, 0, 4.3, M.white);
+plane(6, 3.28, new THREE.MeshBasicMaterial({ map: tex('t_mural.jpg') }), 2250, 430, 2.45, 'S', .03);
+{ const s = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 4.2, .3, 48), M.woodH); s.scale.z = .32; s.position.copy(V(2250, 330, .15)); s.castShadow = s.receiveShadow = true; scene.add(s);
+  box(2560, 400, 2640, 440, .3, 1.5, M.wood); }
+
+/* ───────── 桌椅（依平面圖位置） ───────── */
+const CH = [], TB = [];
+const chair = (x, y, dir) => CH.push([x, y, dir]);                       // dir：椅子面向的角度（0 = 朝前方走道）
+const row = (x0, y, n, dx, dir) => { for (let i = 0; i < n; i++) chair(x0 + i*dx, y, dir); };
+function table(x, y, kind='sq', seats=4) {
+  TB.push([x, y, kind]);
+  const r = kind === 'hi' ? 48 : kind === 'rect' ? 0 : 62;
+  const toward = (cx, cy) => Math.atan2(x - cx, -(y - cy));              // 椅子朝向 = 指向桌子中心
+  if (kind === 'rect') { [-45, 45].forEach(o => { chair(x + o, y + 62, toward(x + o, y + 62)); chair(x + o, y - 62, toward(x + o, y - 62)); }); return; }
+  for (let i = 0; i < seats; i++) { const a = i/seats*Math.PI*2 + (seats === 2 ? Math.PI/4 : 0); chair(x + Math.sin(a)*r, y + Math.cos(a)*r, -a); }   // 朝向 = -a：椅子面向桌子（座標系的前後方向相反，原本東西側的椅子會朝外）
+}
+for (let r = 0; r < 7; r++) { chair(38, 215 + r*68, Math.PI/2); chair(108, 215 + r*68, Math.PI/2); }      // 花蓮小舞台座椅：朝東，面向舞台背牆的電視
+table(310, 1410, 'hi', 2); table(640, 1400, 'hi', 2); table(830, 965, 'hi', 2); table(420, 1235, 'sq', 4);   // 接待專區、洽談
+table(1410, 180, 'rect');                                                                                    // 草皮旁
+[174, 100, 26].forEach(y => { row(1850, y, 7, 60, Math.PI); row(2300, y, 7, 60, Math.PI); });                // 大舞台
+[[1444,755],[1610,755],[3913,840],[4159,882],[3702,755]].forEach(p => table(p[0], p[1], 'sq', 4));
+[[1550,1420],[1830,1420],[3816,531],[3816,240],[3280,650],[3398,451],[3280,253],[2330,1150]].forEach(p => table(p[0], p[1], 'rect'));
+{
+  const o = new THREE.Object3D(), inst = (geo, mat, list, fn) => { const m = new THREE.InstancedMesh(geo, mat, list.length); list.forEach((it, i) => { fn(it); o.updateMatrix(); m.setMatrixAt(i, o.matrix); }); m.castShadow = m.receiveShadow = true; scene.add(m); };
+  const at = (x, y, h, ry=0) => { o.position.copy(V(x, y, h)); o.rotation.set(0, ry, 0); o.scale.set(1, 1, 1); };
+  inst(new THREE.BoxGeometry(.42, .05, .42), M.chair, CH, c => at(c[0], c[1], .46, c[2]));
+  inst(new THREE.BoxGeometry(.42, .42, .04), M.chair, CH, c => { at(c[0], c[1], .7, c[2]); o.translateZ(-.2); o.rotateX(-.12); });
+  inst(new THREE.CylinderGeometry(.022, .022, .44, 6), M.metal, CH.flatMap(c => [[-.17,-.17],[.17,-.17],[-.17,.17],[.17,.17]].map(q => [c[0], c[1], c[2], q])), c => { at(c[0], c[1], .22, c[2]); o.translateX(c[3][0]); o.translateZ(c[3][1]); });
+  const kinds = { sq:[.8, .74, .8], hi:[.62, 1.05, .62], rect:[1.5, .74, .75] };
+  Object.keys(kinds).forEach(k => {
+    const L = TB.filter(t => t[2] === k), d = kinds[k];
+    inst(k === 'hi' ? new THREE.CylinderGeometry(d[0]/2, d[0]/2, .04, 28) : new THREE.BoxGeometry(d[0], .04, d[2]), M.chair, L, t => at(t[0], t[1], d[1]));
+    inst(new THREE.CylinderGeometry(.035, .035, d[1], 8), M.metal, L, t => at(t[0], t[1], d[1]/2));
+    inst(new THREE.CylinderGeometry(.24, .26, .025, 20), M.metal, L, t => at(t[0], t[1], .013));
+  });
+}
+
+/* ───────── 其他院區（簡化量體） ───────── */
+box(1965, 1436, 2535, 1500, 0, 2.6, M.white); box(1975, 1300, 2525, 1312, 0, 2.5, M.white); box(1975, 1312, 2525, 1330, 0, .9, M.leaf);
+box(2210, 702, 2260, 1006, 0, 2.3, M.white); box(2260, 702, 2408, 760, 0, 1.0, M.wood);
+box(2804, 782, 3002, 1368, 0, 2.5, M.white); box(2800, 778, 3006, 1372, 2.2, 2.52, M.navy);
+box(3274, 900, 3768, 1495, 0, 2.5, M.white); box(3270, 896, 3772, 1499, 2.2, 2.52, M.navy); box(3274, 888, 3768, 900, 0, 2.5, M.teal);
+box(3590, 95, 3604, 597, 0, 2.7, M.teal);
+[[4010,1380],[4080,1250],[4200,1340],[4290,1180],[4330,1420],[4130,700],[4260,600],[4350,480]].forEach(([x, y]) => { box(x-45, y-6, x+45, y+6, 0, 2.2, M.wood); box(x-46, y-7, x+46, y+7, 2.2, 2.48, M.navy); });
+
+/* ───────── 花蓮展區量體 ───────── */
+// 展示牆：中央背板＋兩側木櫃檯
+function wall(x1, y1, x2, y2, sides) {
+  const vert = x1 === x2, t = 6;
+  if (vert) { box(x1-t, y1, x1+t, y2, 0, 2.2, M.white); box(x1-t-1, y1, x1+t+1, y2, 2.2, 2.48, M.navy); }
+  else      { box(x1, y1-t, x2, y1+t, 0, 2.2, M.white); box(x1, y1-t-1, x2, y1+t+1, 2.2, 2.48, M.navy); }
+  sides.split('').forEach(sd => {
+    const n = NRM[sd];
+    if (vert) box(x1 + n[0]*t, y1, x1 + n[0]*52, y2, 0, .95, M.wood);
+    else      box(x1, y1 - n[1]*t, x2, y1 - n[1]*52, 0, .95, M.wood);
+  });
+}
+wall(160,1200,160,1500,'WE'); wall(300,1035,600,1035,'NS'); wall(835,1195,835,1500,'WE');
+wall(835,735,835,930,'WE');   wall(835,100,835,500,'WE');   wall(1200,100,1200,800,'WE');
+wall(1165,1000,1165,1290,'W'); wall(1165,1275,1740,1275,'N'); wall(1250,985,1740,985,'S');
+// 儲藏室、東側櫃檯、舞台
+box(262, 200, 512, 745, 0, 2.5, M.white); box(512, 215, 570, 740, 0, .95, M.wood); box(262, 200, 512, 745, 2.2, 2.52, M.navy).scale.set(1.01, 1, 1.01);
+box(165, 200, 250, 650, 0, .15, M.gray); box(250, 200, 262, 745, 0, 4.0, M.gray); box(68, 189, 262, 201, 0, 2.48, M.gray);   // 舞台背牆（加高，牆面圖案才有位置）＋舞台前側的垂直灰牆
+// 小櫃台與品牌燈箱
+box(100, 810, 150, 1000, 0, 1.0, M.white); box(3, 815, 19, 995, 0, 2.5, M.white);
+// 43 吋螢幕（牆端）
+[[160,1195,'S'],[160,1505,'N'],[835,1190,'S'],[835,1505,'N'],[295,1035,'W'],[605,1035,'E'],[835,730,'S'],[835,95,'S'],[1200,95,'S'],[1200,805,'N']]
+  .forEach(([x, y, f]) => plane(.95, .55, M.dark, x, y, 1.75, f, .02));
+wall(2900,557,3200,557,'NS'); wall(2900,259,3200,259,'NS');
+
+/* ───────── 可點選物件 ───────── */
+const pick = [], items = {};
+function posterTex(id, unit, pw) {
+  const W = pw ? Math.round(400*pw/.9*.9) : 360, X = W/2;
+  const c = document.createElement('canvas'); c.width = W; c.height = 500; const g = c.getContext('2d');
+  g.fillStyle = '#fbfcfe'; g.fillRect(0, 0, W, 500);
+  g.fillStyle = '#17336b'; g.fillRect(0, 0, W, 120);
+  g.fillStyle = '#2f9bd6'; g.beginPath(); g.moveTo(W, 500); g.lineTo(W-110, 500); g.quadraticCurveTo(W-60, 440, W, 430); g.fill();
+  g.textAlign = 'center'; g.textBaseline = 'middle'; const fam = '"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif';
+  g.fillStyle = '#fff'; g.font = `700 78px ${fam}`; g.fillText(id, X, 64);
+  g.fillStyle = unit ? '#17336b' : '#98a2b3';
+  const txt = unit || '待確認', lines = (txt.length > 4 && !/^[\x00-\x7F]+$/.test(txt)) ? [txt.slice(0, Math.ceil(txt.length/2)), txt.slice(Math.ceil(txt.length/2))] : [txt];   // 中文單位名稱太長才分兩行；英文（如 IMOSA）一律不換行
+  let s = 92; g.font = `700 ${s}px ${fam}`;
+  while (Math.max(...lines.map(l => g.measureText(l).width)) > 320) { s -= 4; g.font = `700 ${s}px ${fam}`; }
+  lines.forEach((l, i) => g.fillText(l, X, 275 + (i - (lines.length-1)/2)*s*1.15));
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
+}
+function register(mesh, it) { mesh.userData.it = it; it.mesh = mesh; pick.push(mesh); items[it.id] = it; }
+// 海報圖檔：先讀 posters/ 的檔案清單，只載入真的存在的圖，避免對每個編號亂試而產生一堆 404
+const posterMesh = {};
+function setPoster(id, src) {
+  const m = posterMesh[id]; if (!m) return; const im = new Image();
+  im.onload = () => { const t = new THREE.Texture(im); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; t.needsUpdate = true; m.material.map = t; m.material.needsUpdate = true; items[id].img = src; if (current === id) select(id); };
+  im.src = src;
+}
+function loadPosters() {
+  const use = names => names.forEach(n => { const k = /^(A[\d-]+)\.(jpe?g|png|webp)$/i.exec(decodeURIComponent(n)); if (k) setPoster(k[1].toUpperCase(), 'posters/' + n); });
+  if (Array.isArray(window.POSTER_FILES)) return use(window.POSTER_FILES);                 // 部署到不提供目錄清單的主機時，改在 content.js 列出檔名
+  fetch('posters/').then(r => r.ok ? r.text() : '').then(html => use([...html.matchAll(/href="([^"?\/]+)"/g)].map(k => k[1]))).catch(() => {});
+}
+POSTERS.forEach(([id, unit, x, y, face, w, pw]) => {
+  const m = plane(pw || .9, 1.25, new THREE.MeshBasicMaterial({ map: posterTex(id, unit, pw) }), x, y, 1.58, face, .075);
+  register(m, { id, kind:'poster', unit, title: unit || '單位待確認', x, y, face, wall:w,
+    where: `${WALL_NAME[w]}・${FACE_NAME[face]}`, shots: WALL_SHOTS[w] || [] });
+  posterMesh[id] = m;
+});
+loadPosters();
+// 特殊位置：主視覺、舞台螢幕、品牌牆、書牆
+function special(id, title, mesh, where, desc, shots, face, x, y) {
+  register(mesh, { id, kind:'spot', unit:title, title, where, desc, shots, face, x, y });
+}
+{
+  special('A42', '形象打卡牆 主視覺', plane(1.62, 2.5, new THREE.MeshBasicMaterial({ map: tex('t_led.jpg') }), 222, 118, 1.85, 'S', .04), '灰色拱門立柱・朝前方走道',
+    '「慈濟醫療 40・中西醫精準醫療」主視覺，是花蓮展區面向 6 米走道的入口地標。', ['r_entry','p_entry'], 'S', 222, 118);
+  special('A43', '舞台螢幕（65 吋）', plane(5.45, 1.7, new THREE.MeshBasicMaterial({ map: tex('t_banner.jpg') }), 250, 472.5, 1.7, 'W', .02), '舞台背牆・朝左',
+    '小舞台的背牆，有「醫愛四十」主視覺與 65 吋螢幕，前方設有座椅。', ['r_edu','p_wall'], 'W', 250, 472);
+  special('A44', '舞台側牆・飛天圖案', plane(1.3, 1.046, new THREE.MeshBasicMaterial({ map: tex('a44_art.png'), transparent:true, depthWrite:false }), 165, 201, 1.8, 'N', .03), '舞台前側牆面（與橫幅牆垂直）・朝後方',
+    '直接呈現在牆面上的白色線稿圖案，不放海報。位在舞台旁、與「醫愛四十」橫幅牆垂直的灰色牆面上。', ['r_edu','p_wall'], 'N', 165, 201);
+  const logo = new THREE.MeshBasicMaterial({ map: tex('brand_wall.jpg') });   // 合作夥伴品牌牆圖片（比例 1.085:1）
+  special('A45', '品牌牆（外側）', plane(1.9, 1.75, logo, 3, 905, 1.3, 'W', .02), '左側走道邊・朝左',
+    '合作夥伴品牌燈箱，面向左側 3 米走道。', [], 'W', 3, 905);
+  special('A45-1', '品牌牆（內側）', plane(1.9, 1.75, logo, 19, 905, 1.3, 'E', .02), '小櫃台後方・朝右',
+    '品牌燈箱的背面，位在小櫃台後方。', ['p_desk','r_wall'], 'E', 19, 905);
+  const back = new THREE.Mesh(new THREE.BoxGeometry(1.5, 3.4, .12), M.white);
+  back.position.copy(V(462, 1410, 1.7)); back.rotation.y = -Math.PI/4; scene.add(back);
+  special('A46', '《超仁》書牆', plane(.82, 1.15, new THREE.MeshBasicMaterial({ map: tex('t_book.jpg') }), 462, 1410, 1.75, -Math.PI/4, .08), '接待專區・白色主牆左端',
+    '《超仁：花蓮慈濟醫院的韌性醫療與使命》書封展示，位在接待專區。', ['p_book'], -Math.PI/4, 462, 1410);
+}
+// 功能區標籤
+const labels = [];
+function label(text, x, y, h, opt={}) {
+  const c = document.createElement('canvas'), g = c.getContext('2d'), fam = '"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif';
+  g.font = `700 44px ${fam}`; const tw = g.measureText(text).width, bw = opt.badge ? 76 : 0;
+  c.width = Math.ceil(tw + bw + 52); c.height = 84;
+  g.font = `700 44px ${fam}`; g.textBaseline = 'middle';
+  g.fillStyle = opt.bg || 'rgba(23,51,107,.92)'; g.beginPath(); g.roundRect ? g.roundRect(0, 0, c.width, 84, 42) : g.rect(0, 0, c.width, 84); g.fill();
+  if (opt.badge) { g.fillStyle = '#2e9e4f'; g.beginPath(); g.arc(42, 42, 34, 0, 7); g.fill(); g.fillStyle = '#fff'; g.textAlign = 'center'; g.fillText(opt.badge, 42, 45); }
+  g.fillStyle = opt.color || '#fff'; g.textAlign = 'left'; g.fillText(text, bw + 22, 45);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
+  // 標籤固定螢幕大小，拉近時不會放大遮住畫面
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map:t, depthTest:false, transparent:true, sizeAttenuation:false }));
+  const k = (opt.scale || .031)/84; s.userData.base = [c.width*k, 84*k]; s.scale.set(c.width*k, 84*k, 1); labels.push(s); s.position.copy(V(x, y, h)); s.renderOrder = 5; scene.add(s); return s;
+}
+ZONES.forEach(([z, name, x, y, desc, shots]) => {   // 第 7 個欄位（可省略）：「下一區」跳轉時鏡頭相對於該區的位置
+  const s = label(name, x, y, 3.75, { badge:z, bg:'rgba(255,255,255,.95)', color:'#17336b' });
+  register(s, { id:z, kind:'zone', unit:name, title:name, x, y, where:'功能區', desc, shots });
+});
+OTHERS.forEach(([n, x, y, h]) => label(n, x, y, h, { bg:'rgba(60,66,78,.78)', scale:.027 }));
+
+/* ───────── 依「第四次修改圖面」補上各區的彩色圖樣（從設計圖實景裁切，貼在對應的牆面與看板上） ───────── */
+{
+  const art = (name, w, h, x, y, hc, face, tr) => plane(w, h, new THREE.MeshBasicMaterial({ map: tex(name), transparent: !!tr, depthWrite: !tr }), x, y, hc, face, .03);
+  art('t_led2.jpg', 1.62, 2.5, 4278, 118, 1.85, 'S');                                   // 台北慈濟醫學中心拱門：「無量義 法髓頌 60」LED
+  art('t_dalin_bd.jpg', 3.6, 2.4, 3590, 380, 1.35, 'W');                                // 大林慈濟醫院：智慧醫療創新科技背板
+  art('t_dalin_list.jpg', .95, 1.9, 3585, 140, .95, 'W');                               // 大林慈濟醫院：15 區導覽牌
+  art('t_jingsi.png', 1.05, 1.32, 2110, 1300, 1.62, 'S', true);                         // 靜思書軒看板
+  art('t_daai.png', 2.4, 1.62, 2380, 1300, 1.68, 'S', true);                            // 大愛感恩科技（DA.AI）看板
+  art('t_reception.jpg', 1.6, 1.1, 104, 905, 1.6, 'E');                                 // 小櫃台：「人本醫療・尊重生命」背板
+
+  // ── 背面（朝北）的三面白牆 ──
+  const north = (map, w, h, x, y, hc) => plane(w, h, new THREE.MeshBasicMaterial({ map, transparent:true }), x, y, hc, 'N', .03);
+  // 大舞台後牆：「人醫仁心・奉獻偏鄉・防疫守護・永續傳承」照片牆（設計圖空拍視角可見）
+  north(tex('t_photowall_c.jpg'), 3.526, 2.17, 2369, 700, 2.35);
+  // 靜思書軒／大愛感恩科技：背面同樣是看板，下方是綠色波浪隔板
+  north(tex('t_jingsi.png'), 1.25, 1.57, 2110, 1500, 1.72);
+  north(tex('t_daai.png'), 2.5, 1.69, 2380, 1500, 1.75);
+  const curtain = canvasTex(1024, 160, (g, w, h) => { g.fillStyle = '#1d7a38'; g.fillRect(0, 0, w, h); for (let x = 0; x < w; x += 32) { const gr = g.createLinearGradient(x, 0, x + 32, 0); gr.addColorStop(0, 'rgba(0,0,0,.28)'); gr.addColorStop(.5, 'rgba(255,255,255,.12)'); gr.addColorStop(1, 'rgba(0,0,0,.22)'); g.fillStyle = gr; g.fillRect(x, 0, 32, h); } });
+  north(curtain, 5.4, .8, 2250, 1500, .5);
+  // 台北慈濟醫學中心：深藍招牌（設計圖沒有這面的細節，採用與拱門相同的深藍＋院名樣式）
+  const tp = canvasTex(1536, 420, (g, w, h) => {
+    const gr = g.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, '#12306b'); gr.addColorStop(1, '#2a6fb7'); g.fillStyle = gr; g.beginPath(); g.roundRect ? g.roundRect(0, 0, w, h, 44) : g.rect(0, 0, w, h); g.fill();
+    g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = '700 150px "Kaiti TC","BiauKai","DFKai-SB",serif'; g.fillText('台北慈濟醫學中心', w/2, 150);
+    g.font = '700 70px Georgia,serif'; g.fillText('Taipei Tzu Chi Medical Center', w/2, 290);
+  });
+  north(tp, 3.9, 1.07, 3521, 1499, 1.45);
+}
+
+/* ───────── 角色卡：AI 生成的角色圖，永遠面向鏡頭，走路時晃動並依方向左右翻轉 ───────── */
+const shadowGeo = new THREE.CircleGeometry(1, 24), shadowMat = new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:.26, depthWrite:false });
+function board(src, h, opt={}) {
+  const g = new THREE.Group(), m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ transparent:true, alphaTest:.35, side:THREE.DoubleSide, color:0xf4f4f4 }));
+  const sh = new THREE.Mesh(shadowGeo, shadowMat); sh.rotation.x = -Math.PI/2; sh.position.y = .012; sh.scale.set(.3*h, .15*h, 1);
+  g.add(sh, m); scene.add(g);
+  const o = { g, m, h, w:h*.6, flip:1, frames:null };
+  const apply = (t, cols=1) => {
+    t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; const asp = t.image.width/cols/t.image.height; o.w = h*asp;
+    m.geometry.dispose(); m.geometry = new THREE.PlaneGeometry(o.w, h); m.geometry.translate(0, h/2, 0);
+  };
+  o.setTex = (t) => { m.material.map = t; m.material.needsUpdate = true; };
+  o.load = (url, cols=1, cb) => loader.load(A + url, t => { apply(t, cols); if (cols > 1) t.repeat.set(1/cols, 1); if (cb) cb(t); });
+  o.face = (cam, vx, vz) => {                                    // 面向鏡頭；走路時依螢幕上的左右方向翻轉（原圖朝左）
+    m.rotation.y = Math.atan2(cam.position.x - g.position.x, cam.position.z - g.position.z);
+    if (vx !== undefined && (vx || vz)) { const r = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 0); const d = vx*r.x + vz*r.z; if (Math.abs(d) > 1e-4) o.flip = d > 0 ? -1 : 1; }
+    m.scale.x = o.flip*(opt.baseFlip || 1);
+  };
+  return o;
+}
+
+/* ───────── 3D 人偶骨架：模型沒有骨架，載入後自己依手臂、雙腿、頭的區域做簡單動作（走路、揮手、抬頭） ───────── */
+function makeRig(m, url, K, cfg = {}) {
+  const ss = (a, b, x) => { const t = Math.min(1, Math.max(0, (x-a)/(b-a))); return t*t*(3-2*t); };
+  const rot = (a, b, c, s, px, py) => { const x = a-px, y = b-py; return [px + x*c - y*s, py + x*s + y*c]; };
+  const r = { ready:false }, lo = cfg.armLo || .27, hi = cfg.armHi || .36;
+  let pos, base, armI = [], armW = [], forW = [], legI = [], legW = [], legS = [], headI = [], headW = [], jawW = [];
+  new THREE.GLTFLoader().load(A + url, gl => {
+    let mesh; gl.scene.traverse(n => { if (n.isMesh && !mesh) mesh = n; });
+    mesh.material = new THREE.MeshBasicMaterial({ map: mesh.material.map });
+    mesh.scale.setScalar(K); mesh.position.y = .952*K; m.add(mesh);
+    pos = mesh.geometry.attributes.position; base = Float32Array.from(pos.array);
+    for (let i = 0; i < pos.count; i++) {
+      const x = base[i*3], y = base[i*3+1];
+      const aw = cfg.suit ? ss(.22, .28, Math.abs(x)) * ss(.56, .44, y) : ss(lo, hi, Math.abs(x)) * ss(.62, .5, y);   // 離開軀幹的部分才算手臂（左右兩側）；suit：手臂垂在身側的西裝人偶
+      if (aw > .001) { armI.push(i); armW.push(aw); forW.push(cfg.suit ? ss(.38, .26, y) : ss(.28, .4, (Math.abs(x)-.3)*.34 + (.45-y)*.94)); }   // 沿手臂方向超過手肘的部分算前臂
+      const hw = ss(.56, .68, y); if (hw > .001) { headI.push(i); headW.push(hw); jawW.push(ss(.748, .736, y) * ss(-.02, .04, base[i*3+2]) * ss(.19, .13, Math.abs(x))); }   // 脖子以上算頭，用來抬頭看鏡頭
+      const lw = ss(-.42, -.52, y);
+      if (lw > .001) { legI.push(i); legW.push(lw); legS.push(ss(-.04, .04, x)); }
+    }
+    if (cfg.suit) { let by = 9; for (let k = 0; k < armI.length; k++) { const i = armI[k]; if (base[i*3]*cfg.mic > 0 && armW[k] > .99 && base[i*3+1] < by) { by = base[i*3+1]; r.hand = i; } } }   // 手掌最低的點：拿麥克風的位置
+    r.ready = true;
+  });
+  r.handPos = v => { const i = r.hand*3, a = pos.array; return v.set(a[i]*K, a[i+1]*K + .952*K, a[i+2]*K); };
+  // walk：走路程度 0–1；ph：步伐相位；up：舉手程度 0–1；t：揮手計時；pitch：抬頭角度；ws：舉哪一側的手（1 = 模型 x>0 側）
+  r.pose = (walk, ph, up, t, pitch, ws = 1, jaw = 0) => {
+    if (!r.ready) return; const arr = pos.array, sw = Math.sin(ph), L = .5*walk*sw;
+    const cl = Math.cos(L), sl = Math.sin(L), cr = Math.cos(-L), sr = Math.sin(-L);
+    const kk = -ws, rotUp = -1.0*up*kk, wv = (-1.05 + .25*Math.sin(t*7))*up*kk;
+    const cu = Math.cos(rotUp), su = Math.sin(rotUp), ax = .38*walk*sw;
+    for (let k = 0; k < legI.length; k++) {
+      const i = legI[k]*3, y = base[i+1], z = base[i+2], w = legW[k], a = legS[k] > .5 ? [cl, sl] : [cr, sr];
+      const yz = rot(y, z, a[0], a[1], -.47, 0); arr[i] = base[i]; arr[i+1] = y + w*(yz[0]-y); arr[i+2] = z + w*(yz[1]-z);
+    }
+    for (let k = 0; k < armI.length; k++) {
+      const i = armI[k]*3, x = base[i], y = base[i+1], z = base[i+2], w = armW[k], f = forW[k];
+      let tx = x, ty = y, tz = z;
+      if (cfg.suit) {   // 手臂貼著身體（模型沒有張開手臂）：整隻手臂以肩膀為軸往前抬、前後擺動，不往外張（往外會把袖子撕開）
+        if (x*ws > 0 && up > 0) { const a = (-1.0 + .2*Math.sin(t*7))*up, u = rot(ty, tz, Math.cos(a), Math.sin(a), .5, 0); ty = u[0]; tz = u[1]; }
+      } else if (x*ws > 0) {
+        if (up > 0) { const e = rot(tx, ty, Math.cos(wv*f), Math.sin(wv*f), ws*.4, .17); tx = e[0]; ty = e[1];
+          const q = rot(tx, ty, cu, su, ws*.3, .45); tx = q[0]; ty = q[1]; }
+        const s2 = rot(ty, tz, Math.cos(ax*(1-up)), Math.sin(ax*(1-up)), .45, 0); ty = s2[0]; tz = s2[1];
+      } else { const s2 = rot(ty, tz, Math.cos(-ax), Math.sin(-ax), .45, 0); ty = s2[0]; tz = s2[1]; }
+      arr[i] = x + w*(tx-x); arr[i+1] = y + w*(ty-y); arr[i+2] = z + w*(tz-z);
+    }
+    const cp = Math.cos(-pitch), sp = Math.sin(-pitch);                       // 頭往上抬（臉朝 +z，抬頭＝負角度）
+    for (let k = 0; k < headI.length; k++) {
+      const i = headI[k]*3; let y = base[i+1], z = base[i+2], w = headW[k];
+      if (jaw > 0 && jawW[k] > .001) { y -= jaw*.06*jawW[k]; z -= jaw*.02*jawW[k]; }   // 下唇與下巴往下、微微往後：嘴巴張開
+      const q = rot(y, z, cp, sp, .6, 0);
+      arr[i] = base[i]; arr[i+1] = base[i+1] + w*(q[0]-base[i+1]) + (1-w)*(y-base[i+1]); arr[i+2] = base[i+2] + w*(q[1]-base[i+2]) + (1-w)*(z-base[i+2]);
+    }
+    pos.needsUpdate = true;
+  };
+  return r;
+}
+
+// 院長迎賓人偶：3D 模型 assets/director3d.glb（由 Meshy 模型縮減面數而來），走路擺腿、到定點後舉手揮動
+const willGreet = true;   // 每次開啟或重新整理網頁，院長都會重新走一遍並說歡迎詞（不受系統「減少動態效果」影響）
+const sayEl = document.getElementById('say');
+const host = (() => {
+  const HOME = V(390, 12, 0), FINAL = V(390, -24, 0), FS = 1.28;   // 走到地毯前緣後，再往走道多踏一步並放大
+  const route = [[640,520],[640,300],[625,100],[430,32],[390,12]].map(q => V(q[0], q[1], 0)), seg = [], total0 = (() => { let t = 0; for (let k = 0; k < route.length-1; k++) { seg.push(route[k].distanceTo(route[k+1])); t += seg[k]; } return t; })();
+  const g = new THREE.Group(), m = new THREE.Group();                 // g：位置與縮放；m：轉向、上下晃動
+  const sh = new THREE.Mesh(shadowGeo, shadowMat); sh.rotation.x = -Math.PI/2; sh.position.y = .012; sh.scale.set(.5, .3, 1);
+  const proxy = new THREE.Mesh(new THREE.BoxGeometry(.9, 2.1, .7), new THREE.MeshBasicMaterial({ visible:false })); proxy.position.y = 1.05;   // 點選用的看不見方塊
+  g.add(sh, m, proxy); scene.add(g);
+  const o = { m:g, mode: willGreet ? 'wait' : 'wave', dist:0, sayUntil:0, t0: performance.now() + 2100, up:0, yaw:0, pitch:0, say(ms=4500){ o.sayUntil = performance.now() + ms; } };
+  g.position.copy(willGreet ? route[0] : FINAL); g.scale.setScalar(willGreet ? .8 : FS);
+  const rig = makeRig(m, 'director3d.glb', 2.1/1.9), WSIDE = 1;     // 模型原高 1.9，放大到約 2.1 公尺（比民眾高一點）
+  Object.defineProperty(o, 'ready', { get: () => rig.ready, set: () => {} });
+  o.pose = (walk, ph, up, t) => rig.pose(walk, ph, up, t, o.pitch, WSIDE);
+  const it_ = { id:'歡迎', kind:'host', unit:'林欣榮院長', title:'林欣榮院長', x:390, y:-24, where:'花蓮慈濟醫學中心・展區入口',
+    desc:'歡迎參觀花蓮慈院展區！點選展場裡的海報或綠色標籤，可以看每個單位的介紹。', shots:[] };
+  items['歡迎'] = it_; proxy.userData.it = it_; it_.mesh = proxy; pick.push(proxy);
+  o.update = () => {};
+  const turn = (to, dt) => { let d = to - o.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); o.yaw += d*Math.min(1, dt*9); m.rotation.y = o.yaw; };
+  o.step = (now, dt, cam) => {
+    if (!o.ready) return;
+    if (o.mode === 'wait' && now >= o.t0) { o.mode = 'walk'; }
+    let vx = 0, vz = 0, walk = 0, ph = 0;
+    if (o.mode === 'walk') {
+      o.dist += 1.9*dt; let d = o.dist, i = 0; while (i < seg.length && d > seg[i]) { d -= seg[i]; i++; }
+      if (i >= seg.length) { o.mode = 'grow'; o.gt = 0; g.position.copy(HOME); }
+      else {
+        const a = route[i], c = route[i+1]; g.position.lerpVectors(a, c, d/seg[i]); vx = c.x-a.x; vz = c.z-a.z;
+        ph = o.dist*5.2; walk = 1; m.position.y = Math.abs(Math.sin(ph))*.05; m.rotation.z = Math.sin(ph)*.02;
+        g.scale.setScalar(.8 + .2*Math.min(1, o.dist/total0));                       // 越走越近，慢慢變大
+      }
+    }
+    if (o.mode === 'grow') {                                                          // 再往前一步並放大，然後揮手、說話
+      o.gt += dt/.8; const e = Math.min(1, o.gt), k = e*e*(3-2*e);
+      g.position.lerpVectors(HOME, FINAL, k); g.scale.setScalar(1 + (FS-1)*k); vz = 1; walk = 1 - k; ph = o.gt*9;
+      m.position.y = Math.abs(Math.sin(o.gt*9))*.04*(1-k); m.rotation.z = 0;
+      if (e >= 1) { o.mode = 'wave'; m.position.y = 0; m.rotation.z = 0; o.say(6200); o.wt = 0; setTimeout(showGuide, 6400); }
+    }
+    if (o.mode === 'wave') { o.wt = (o.wt || 0) + dt; o.up = Math.min(1, o.up + dt/.45); }
+    if (o.mode === 'wave' || o.mode === 'wait' || !(vx || vz)) turn(Math.atan2(cam.position.x - g.position.x, cam.position.z - g.position.z), dt);   // 站定時面向鏡頭
+    else turn(Math.atan2(vx, vz), dt);                                                // 走路時面向行進方向
+    const hd = Math.hypot(cam.position.x - g.position.x, cam.position.z - g.position.z) || 1, tp = (o.mode === 'wave' || o.mode === 'wait') ? Math.min(.6, Math.max(0, Math.atan2(cam.position.y - (g.position.y + 1.9*g.scale.x), hd)*1.7)) : 0;
+    const op = o.pitch; o.pitch += (tp - o.pitch)*Math.min(1, dt*6);                  // 抬頭看向鏡頭（鏡頭在上方時）
+    if (o.mode === 'walk' || o.mode === 'grow' || o.mode === 'wave' || Math.abs(o.pitch - op) > 1e-4) o.pose(walk, ph, o.up, o.wt || 0);
+    const on = now < o.sayUntil, v = g.position.clone(); v.y += 2.45*g.scale.x; v.project(cam);
+    sayEl.classList.toggle('on', on && v.z < 1);
+    if (on) { const w = sayEl.offsetWidth/2 + 10, x = Math.min(innerWidth - w, Math.max(w, (v.x*.5 + .5)*innerWidth)); sayEl.style.left = x + 'px'; sayEl.style.top = ((-v.y*.5 + .5)*innerHeight) + 'px'; }   // 泡泡不超出螢幕
+  };
+  return o;
+})();
+
+// 吳彬安副院長：站在 A24 旁，點他會帶你依序看 A24、A25、A26（AI中心、史坦賽爾）的海報
+const vice = (() => {
+  const IDLE = [760,545], SP = [[760,360],[760,260],[760,160]], IDS = ['A24','A25','A26'];
+  const g = new THREE.Group(), m = new THREE.Group(), say2 = document.getElementById('say2');
+  const sh = new THREE.Mesh(shadowGeo, shadowMat); sh.rotation.x = -Math.PI/2; sh.position.y = .012; sh.scale.set(.5, .3, 1);
+  const proxy = new THREE.Mesh(new THREE.BoxGeometry(.9, 2, .7), new THREE.MeshBasicMaterial({ visible:false })); proxy.position.y = 1;
+  g.add(sh, m, proxy); scene.add(g); g.position.copy(V(IDLE[0], IDLE[1], 0));
+  const rig = makeRig(m, 'vice3d.glb', 2.0/1.9);
+  const o = { m:g, mode:'idle', idx:0, tt:0, up:0, yaw:0, pitch:0, ph:0, wt:0, sayUntil:0, greeted:false, text:'' };
+  const say = (t, ms) => { o.text = t; say2.textContent = t; o.sayUntil = performance.now() + ms; };
+  const line = id => { const it = items[id], c = (window.CONTENT || {})[id] || {};
+    const t = String(c.text || '').split(/[。\n]/)[0].slice(0, 40);
+    return `${id}：${c.title || it.unit}。${t ? t + '。' : '詳細內容請看資訊卡。'}`; };
+  const begin = () => {
+    o.mode = 'go'; select(IDS[o.idx]);
+    const pz = V(835, [450, 350, 250][o.idx], 0).z, wide = innerWidth >= 860;
+    flyTo([6.5, wide ? 1.8 : 2.4, 6.3], [8.3, wide ? 1.4 : 1.1, pz + (wide ? 1.2 : .4)], 1000);   // 鏡頭站在走道北端斜看展示牆，副院長與海報一起入鏡（避開儲藏室）
+  };
+  o.start = () => { if (o.mode !== 'idle') return; o.idx = 0; o.greeted = true; begin(); };
+  const it_ = { id:'導覽', kind:'guide', unit:'吳彬安副院長', title:'吳彬安副院長', where:'前方中央展示牆旁', desc:'', shots:[], run: () => o.start() };
+  items['導覽'] = it_; proxy.userData.it = it_; it_.mesh = proxy; pick.push(proxy);
+  const turn = (to, dt) => { let d = to - o.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); o.yaw += d*Math.min(1, dt*9); m.rotation.y = o.yaw; };
+  o.step = (now, dt, cam) => {
+    if (!rig.ready) return;
+    let vx = 0, vz = 0, walk = 0;
+    const dcam = Math.hypot(cam.position.x - g.position.x, cam.position.z - g.position.z);
+    if (o.mode === 'idle' && !o.greeted && dcam < 13 && !document.body.classList.contains('sheetopen')) { o.greeted = true; say('我是吳彬安副院長，點我帶您看 A24–A26 的海報', 6500); }
+    if (o.mode === 'go' || o.mode === 'back') {
+      const q = o.mode === 'back' ? IDLE : SP[o.idx], tg = V(q[0], q[1], 0), d = tg.clone().sub(g.position), len = d.length();
+      if (len < .06) {
+        if (o.mode === 'go') { o.mode = 'talk'; o.tt = 0; say(line(IDS[o.idx]), 5200); } else o.mode = 'idle';
+      } else { const st = Math.min(len, 1.9*dt); d.normalize(); g.position.addScaledVector(d, st); vx = d.x; vz = d.z; walk = 1; o.ph += 1.9*dt*5.2; m.position.y = Math.abs(Math.sin(o.ph))*.05; }
+    }
+    if (o.mode === 'talk') { o.tt += dt; if (o.tt > 5.4) { o.idx++; if (o.idx < IDS.length) begin(); else { o.mode = 'bye'; o.tt = 0; say('以上是 A24 到 A26 的介紹，歡迎再點我', 3800); } } }
+    if (o.mode === 'bye') { o.tt += dt; if (o.tt > 3.8) { closeSheet(); o.mode = 'back'; } }
+    if (!walk) m.position.y = 0;
+    const speaking = now < o.sayUntil; o.up += ((speaking && !walk ? 1 : 0) - o.up)*Math.min(1, dt*5); o.wt += dt;
+    if (walk) turn(Math.atan2(vx, vz), dt); else turn(Math.atan2(cam.position.x - g.position.x, cam.position.z - g.position.z), dt);
+    const hd = Math.max(1, Math.hypot(cam.position.x - g.position.x, cam.position.z - g.position.z));
+    const tp = walk ? 0 : Math.min(.6, Math.max(0, Math.atan2(cam.position.y - (g.position.y + 1.9), hd)*1.7)); o.pitch += (tp - o.pitch)*Math.min(1, dt*6);
+    rig.pose(walk, o.ph, o.up, o.wt, o.pitch, -1);                                   // 副院長舉另一側的手（畫面上的右手）
+    const v = g.position.clone(); v.y += 2.4; v.project(cam); say2.classList.toggle('on', speaking && v.z < 1);
+    if (speaking) { const w = say2.offsetWidth/2 + 10, rs = (innerWidth >= 600 && document.body.classList.contains('sheetopen')) ? 340 : 0, x = Math.min(innerWidth - rs - w, Math.max(w, (v.x*.5 + .5)*innerWidth)); say2.style.left = x + 'px'; say2.style.top = ((-v.y*.5 + .5)*innerHeight) + 'px'; }
+  };
+  return o;
+})();
+
+// 蔡昇宗副院長：站在大舞台左側，偶爾在舞台上走動幾步
+const lecturer = (() => {
+  const SX = 2050, SY = 345;
+  const g = new THREE.Group(), m = new THREE.Group(), say3 = document.getElementById('say3');
+  const sh = new THREE.Mesh(shadowGeo, shadowMat); sh.rotation.x = -Math.PI/2; sh.position.y = .012; sh.scale.set(.5, .3, 1);
+  const proxy = new THREE.Mesh(new THREE.BoxGeometry(.9, 2, .7), new THREE.MeshBasicMaterial({ visible:false })); proxy.position.y = 1;
+  g.add(sh, m, proxy); scene.add(g); g.position.copy(V(SX, SY, .3));
+  const K = 2.0/1.9, rig = makeRig(m, 'tsai3d.glb', K, { suit:true });
+  const o = { m:g, yaw:0, pitch:0, wt:0, up:0, say:0, mode:'stand', next:5, tx:SX, ph:0 };
+  const it_ = { id:'講課', kind:'guide', unit:'蔡昇宗副院長', title:'蔡昇宗副院長', where:'大舞台', desc:'', shots:[], run: () => {
+    closeSheet(); const c = V(2250, SY, 1.3); flyTo([c.x - 1.5, 3.4, c.z + 8.2], [c.x - 1.2, 1.5, c.z], 1000);
+    say3.textContent = '我是蔡昇宗副院長'; o.say = performance.now() + 4200; } };
+  items['講課'] = it_; proxy.userData.it = it_; it_.mesh = proxy; pick.push(proxy);
+  o.step = (now, dt, cam) => {
+    if (!rig.ready) return;
+    o.wt += dt;
+    let walk = 0, vx = 0;
+    if (o.mode === 'stand') { if (o.wt > o.next) { o.mode = 'walk'; let t; do { t = 1990 + Math.random()*330; } while (Math.abs(t - g.position.x*100) < 60); o.tx = t; } }   // 偶爾走到舞台左半邊的另一個位置
+    else { const cx = g.position.x*100, dd = o.tx - cx, st = Math.min(Math.abs(dd), .6*dt*100);
+      if (Math.abs(dd) < 1) { o.mode = 'stand'; o.next = o.wt + 6 + Math.random()*7; } else { g.position.x += Math.sign(dd)*st/100; vx = Math.sign(dd); walk = 1; o.ph += .6*dt*5.2*1.8; } }
+    m.position.y = walk ? Math.abs(Math.sin(o.ph))*.03 : 0;
+    let d = walk ? Math.atan2(vx, 0) : Math.atan2(cam.position.x - g.position.x, cam.position.z - g.position.z); if (!walk) d = Math.max(-.7, Math.min(.7, d));   // 站定時面向觀眾，只在 ±40° 內跟著鏡頭轉；走動時面向行進方向
+    o.yaw += (Math.atan2(Math.sin(d - o.yaw), Math.cos(d - o.yaw)))*Math.min(1, dt*(walk ? 8 : 6)); m.rotation.y = o.yaw;
+    const hd = Math.max(1, Math.hypot(cam.position.x - g.position.x, cam.position.z - g.position.z));
+    const tp = Math.min(.5, Math.max(0, Math.atan2(cam.position.y - (g.position.y + 1.9), hd)*1.4)) + .04*Math.sin(o.wt*1.7); o.pitch += (tp - o.pitch)*Math.min(1, dt*6);
+    rig.pose(walk, o.ph, 0, o.wt, o.pitch, 1, 0);
+    const speaking = now < o.say, v = g.position.clone(); v.y += 2.4; v.project(cam); say3.classList.toggle('on', speaking && v.z < 1);
+    if (speaking) { const w = say3.offsetWidth/2 + 10, x = Math.min(innerWidth - w, Math.max(w, (v.x*.5 + .5)*innerWidth)); say3.style.left = x + 'px'; say3.style.top = ((-v.y*.5 + .5)*innerHeight) + 'px'; }
+  };
+  return o;
+})();
+
+// 選取框
+const frame = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color:0xf5b301 }));
+frame.visible = false; scene.add(frame);
+
+// 參觀民眾：用你先前 AI 生成的黏土風角色表（assets/people/c0–c11.png）。換成新的角色圖只要覆蓋這些檔案
+const CROWD = [
+  { img:'c4',  h:1.45, speed:.5  },   // 阿嬤
+  { img:'c5',  h:1.55, speed:.9  },   // 學生
+  { img:'c3',  h:1.72, speed:.95 },   // 上班族
+  { img:'c9',  h:1.58, speed:.8  },   // 老師
+  { img:'c1',  h:1.55, speed:.7  },   // 遊客
+  { img:'c10', h:1.12, speed:.75 },   // 小朋友
+  { img:'c2',  h:1.62, speed:.85 },   // 旅人
+  { img:'c11', h:1.12, speed:.8  },   // 小朋友
+  { img:'c0',  h:1.7,  speed:.6  },   // 登山客
+  { img:'c3',  h:1.7,  speed:.9  },   // 上班族
+];
+const PATHS = [
+  [[650,90],[660,560],[700,930],[650,1150],[330,1160],[300,880],[640,820],[660,560]],
+  [[1010,90],[1000,600],[990,930],[1000,1150],[990,930],[1000,600]],
+  [[60,720],[230,760],[420,900],[240,1120],[60,1080]],
+  [[560,75],[900,45],[1400,60],[900,85]],
+  [[700,540],[690,130],[640,70],[700,130]],
+  [[1080,1150],[1060,880],[1010,700],[1060,880]],
+  [[1700,60],[2800,50],[3600,70],[2800,85]],
+  [[1850,250],[2700,250]],
+  [[3600,95],[2800,70],[1700,60],[2800,100]],
+  [[1350,150],[1350,900]],
+];
+const walkers = CROWD.map((c, i) => {
+  const b = board(c.img ? 'people/' + c.img + '.png' : '', c.h); b.load('people/' + c.img + '.png', 1, t => b.setTex(t));
+  const P = PATHS[i].map(q => V(q[0], q[1])), seg = P.map((q, k) => q.distanceTo(P[(k+1)%P.length])), total = seg.reduce((a, x) => a+x, 0);
+  return Object.assign(b, { P, seg, total, d:(i*2.7) % total, v:c.speed, wait:0, idx:0, vx:0, vz:0 });
+});
+function stepWalkers(dt, cam) {
+  walkers.forEach(w => {
+    let moving = false;
+    if (w.wait > 0) w.wait -= dt;
+    else {
+      w.d = (w.d + w.v*dt) % w.total; moving = true;
+      let acc = 0, k = 0; while (k < w.seg.length && acc + w.seg[k] < w.d) { acc += w.seg[k]; k++; }
+      if (k !== w.idx) { w.idx = k; if (Math.random() < .45) w.wait = 1.2 + Math.random()*2.6; }   // 走到轉角有時會停下來看看
+    }
+    let d = w.d, i = 0; while (i < w.seg.length-1 && d > w.seg[i]) { d -= w.seg[i]; i++; }
+    const a = w.P[i], b = w.P[(i+1)%w.P.length]; w.g.position.lerpVectors(a, b, d/w.seg[i]);
+    w.vx = b.x - a.x; w.vz = b.z - a.z;
+    const ph = w.d*(5.4/w.h), step = moving ? Math.abs(Math.sin(ph)) : 0;
+    w.m.position.y = step*.055*w.h; w.m.rotation.z = moving ? Math.sin(ph)*.045 : 0;               // 上下顛和左右搖擺
+    w.m.scale.y = 1 + (moving ? (step - .5)*.03 : 0);
+    w.face(cam, w.vx, w.vz);
+  });
+}
+
+/* ───────── 視角 ───────── */
+const VIEWS = { hualien:[[9,7.6,29.5],[7.5,1.6,7.2]], all:[[22.5,26,42],[22.5,0,7]], top:[[7.5,28,7.6],[7.5,0,7.5]] };
+let fly = null;
+/* ───────── 眼高行走模式：鏡頭降到 1.65 公尺，像真人走進展場，展架比視線高 ───────── */
+const walkSt = { on:false, th:0, pitch:-.04 };            // th：面向角度（0 朝展場深處），pitch：抬頭低頭
+const EYE = 1.65, WALK_FOV = 64, ORBIT_FOV = 40;
+const fwdOf = () => new THREE.Vector3(Math.sin(walkSt.th)*Math.cos(walkSt.pitch), Math.sin(walkSt.pitch), -Math.cos(walkSt.th)*Math.cos(walkSt.pitch));
+function clearAt(x, z) {                                   // 這個地面位置周圍有沒有牆或櫃檯
+  const o = new THREE.Vector3(x, 1.1, z);
+  for (let a = 0; a < 8; a++) { const d = new THREE.Vector3(Math.cos(a*Math.PI/4), 0, Math.sin(a*Math.PI/4)); if (new THREE.Raycaster(o, d, 0, .5).intersectObjects(solids, false).length) return false; }
+  return true;
+}
+function enterWalk() {
+  if (walkSt.on) return; walkSt.on = true; document.body.classList.add('walking');
+  const dir = new THREE.Vector3(); camera.getWorldDirection(dir); dir.y = 0; if (dir.lengthSq() < 1e-3) dir.set(0, 0, -1); dir.normalize();
+  const th = Math.atan2(dir.x, -dir.z), t = controls.target, side = new THREE.Vector3(-dir.z, 0, dir.x); let spot = null;
+  search: for (const d of [8, 6.5, 5, 3.6, 2.6, 1.8, .8, 0]) for (const l of [0, 1.5, -1.5, 3, -3]) {    // 站在目前看的位置往後（靠近入口的方向）找一個沒卡到東西的點，像從走道走進去
+    const x = t.x - dir.x*d + side.x*l, z = t.z - dir.z*d + side.z*l;
+    if (x > -1.5 && x < 46 && z > -5 && z < 19 && clearAt(x, z)) { spot = [x, z]; break search; }
+  }
+  if (!spot) spot = [5.4, 17.6];
+  walkSt.th = th; walkSt.pitch = -.04; const f = fwdOf(), pos = new THREE.Vector3(spot[0], EYE, spot[1]);
+  camera.fov = WALK_FOV; camera.updateProjectionMatrix(); controls.enabled = false; controls.minPolarAngle = .01; controls.maxPolarAngle = Math.PI - .01; controls.minDistance = .2;
+  labels.forEach(l => l.visible = false); closeSheet(); if (window.zoneToast) zoneToast('走進展場：推搖桿前進，拖曳畫面轉頭，按 ⌂ 回到俯瞰');
+  flyTo(pos.toArray(), pos.clone().add(f).toArray(), 800);
+}
+function exitWalk() {
+  if (!walkSt.on) return; walkSt.on = false; document.body.classList.remove('walking');
+  camera.fov = ORBIT_FOV; camera.updateProjectionMatrix(); controls.enabled = true; controls.minPolarAngle = 0; controls.maxPolarAngle = Math.PI/2 - .04; controls.minDistance = .6;
+  labels.forEach(l => l.visible = true);
+}
+function flyTo(pos, tgt, ms=900) {
+  fly = { p0:camera.position.clone(), t0:controls.target.clone(), p1:new THREE.Vector3(...pos), t1:new THREE.Vector3(...tgt), s:performance.now(), ms };
+}
+function setView(name, instant) {
+  exitWalk();
+  const [p, t] = VIEWS[name];
+  const k = Math.max(1, 1.05/camera.aspect), q = p.map((v, i) => t[i] + (v - t[i])*k);   // 直式螢幕拉遠一點
+  if (instant) { camera.position.set(...q); controls.target.set(...t); } else flyTo(q, t);
+  document.querySelectorAll('.views [data-view]').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === name));
+}
+document.querySelectorAll('.views [data-view]').forEach(b => b.onclick = () => { closeSheet(); setView(b.dataset.view); });
+
+/* ───────── 資訊卡與清單 ───────── */
+const $ = id => document.getElementById(id);
+const sheet = $('sheet'), drawer = $('drawer');
+const order = POSTERS.map(p => p[0]).concat(['A42','A43','A44','A45','A45-1','A46']).sort((a, b) => a.localeCompare(b, 'en', { numeric:true }));
+let current = null;
+function select(id) {
+  exitWalk();
+  const it = items[id]; if (!it) return;
+  if (it.kind === 'guide') { it.run(); return; }   // 點副院長：開始導覽，不開資訊卡
+  current = id; document.body.classList.add('sheetopen'); drawer.classList.remove('open'); $('hint').classList.add('off');
+  $('sCode').textContent = it.id; $('sCode').className = 'code' + (it.kind === 'poster' || it.kind === 'spot' ? '' : ' z');
+  $('sTitle').textContent = it.title; $('sWhere').textContent = it.where;
+  let h = '';
+  if (it.kind === 'poster') {
+    const same = POSTERS.filter(p => it.unit && p[1] === it.unit).map(p => p[0]);
+    if (!it.unit) h += `<div class="note">位置圖上這個編號沒有標示單位，請確認後補上。</div>`;
+    else h += `<p>這是 <b>${it.unit}</b> 的海報位置${same.length > 1 ? `，該單位共有 ${same.length} 面` : ''}。</p>`;
+    if (same.length > 1) h += `<div class="chips">${same.map(s => `<button data-go="${s}" class="${s === id ? 'on' : ''}">${s}</button>`).join('')}</div>`;
+    const c = (window.CONTENT || {})[id] || {};
+    if (c.title) $('sTitle').textContent = c.title, $('sWhere').textContent = `${it.unit || '單位待確認'}・${it.where}`;
+    if (c.text) h += String(c.text).split(/\n+/).map(t => `<p>${t.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</p>`).join('');
+    if (c.video) h += `<div class="shots"><video controls playsinline preload="metadata" src="posters/${c.video}"></video></div>`;
+    if (it.img) h += `<div class="lbl">海報</div><div class="shots"><a href="${it.img}" target="_blank" rel="noopener"><img src="${it.img}" alt="${it.id} 海報"></a></div>`;
+    if (!c.text && !c.video && !it.img) h += `<div class="note">海報內容尚未提供。之後可在這裡放海報圖檔、介紹文字或影片。</div>`;
+  } else h += `<p>${it.desc}</p>`;
+  if (it.shots && it.shots.length) h += `<div class="lbl">設計圖</div><div class="shots">${it.shots.map(s => `<img loading="lazy" src="${A}${s}.jpg" alt="${it.title} 設計圖">`).join('')}</div>`;
+  if (it.kind === 'poster' || it.kind === 'spot') { const i = order.indexOf(id); h += `<div class="nav2"><button data-go="${order[(i-1+order.length)%order.length]}">← 上一個</button><button data-go="${order[(i+1)%order.length]}">下一個 →</button></div>`; }
+  $('sCont').innerHTML = h; $('sCont').scrollTop = 0; sheet.classList.add('open');
+  document.querySelectorAll('.views [data-view]').forEach(b => b.setAttribute('aria-pressed', 'false'));
+  // 鏡頭與選取框
+  const wide = innerWidth >= 860;
+  if (it.kind === 'host') {
+    host.say(3500); frame.visible = false; const c = V(it.x, it.y, 1);
+    flyTo([c.x + (wide ? 2 : .4), 2.0, c.z + 6.6], [c.x + (wide ? 1.4 : 0), wide ? 1.3 : .6, c.z]);
+  } else if (it.kind === 'zone') {
+    frame.visible = false; const c = V(it.x, it.y, 1);
+    flyTo([c.x + 1.5, 8.5, c.z + 9], [c.x + (wide ? 1.5 : 0), 1, c.z + (wide ? 0 : 1.2)]);
+  } else {
+    const m = it.mesh, n = new THREE.Vector3(0, 0, 1).applyQuaternion(m.quaternion);
+    const g = m.geometry.parameters; frame.scale.set(g.width + .14, g.height + .14, 1);
+    frame.position.copy(m.position).addScaledVector(n, -.012); frame.quaternion.copy(m.quaternion); frame.visible = true;
+    const tall = camera.aspect < 1, right = new THREE.Vector3(n.z, 0, -n.x), sh = wide ? 1.2 : 0;
+    const dist = Math.max(4.3, g.height*2.1, g.width*2.6) * (tall ? 1.55 : 1);
+    const tgt = m.position.clone().addScaledVector(right, sh); tgt.y -= wide ? .1 : (tall ? 1.3 : .9);
+    const pos = m.position.clone().addScaledVector(n, dist).addScaledVector(right, sh); pos.y = tall ? 4.2 : 3.0;
+    // 鏡頭若會卡進牆或拱門，就往前拉到障礙物前面
+    const from = m.position.clone().addScaledVector(n, .3), dir = pos.clone().sub(from), len = dir.length();
+    scene.updateMatrixWorld(); const blk = new THREE.Raycaster(from, dir.normalize(), 0, len + .6).intersectObjects(solids, false)[0];
+    if (blk) pos.copy(from).addScaledVector(dir, Math.max(2.4, blk.distance - .5));
+    if (tall) tgt.y = m.position.y - .14*pos.distanceTo(m.position);
+    flyTo(pos.toArray(), tgt.toArray());
+  }
+}
+function closeSheet() { sheet.classList.remove('open'); document.body.classList.remove('sheetopen'); frame.visible = false; current = null; }
+$('sX').onclick = closeSheet;
+$('sCont').onclick = e => { const b = e.target.closest('[data-go]'); if (b) select(b.dataset.go); };
+$('bList').onclick = () => drawer.classList.toggle('open');
+$('bClose').onclick = () => drawer.classList.remove('open');
+{
+  const units = {}; POSTERS.forEach(p => { (units[p[1] || '待確認'] = units[p[1] || '待確認'] || []).push(p[0]); });
+  let h = '<h3>功能區</h3>' + ZONES.map(z => `<button class="row" data-go="${z[0]}"><span class="tag z">${z[0]}</span><span class="nm">${z[1]}</span></button>`).join('');
+  h += '<h3>展出單位</h3>' + Object.keys(units).map(u => `<button class="row" data-go="${units[u][0]}"><span class="tag">${units[u].length}</span><span class="nm">${u}</span><span class="sub">${units[u][0]}${units[u].length > 1 ? '–' + units[u][units[u].length-1].replace('A', '') : ''}</span></button>`).join('');
+  h += '<h3>主視覺與牆面</h3>' + ['A42','A43','A44','A45','A46'].map(i => `<button class="row" data-go="${i}"><span class="tag">${i.replace('A', '')}</span><span class="nm">${items[i].title}</span></button>`).join('');
+  $('list').innerHTML = h; $('list').onclick = e => { const b = e.target.closest('[data-go]'); if (b) select(b.dataset.go); };
+}
+
+/* ───────── 點選與滑過 ───────── */
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(); let down = null, hover = null;
+function hit(e) {
+  const r = canvas.getBoundingClientRect(); ptr.set((e.clientX-r.left)/r.width*2-1, -(e.clientY-r.top)/r.height*2+1);
+  ray.setFromCamera(ptr, camera); const h = ray.intersectObjects(pick, false)[0]; return h ? h.object : null;
+}
+let lookLast = null;
+canvas.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; lookLast = [e.clientX, e.clientY]; if (!walkSt.on) fly = null; });
+canvas.addEventListener('pointermove', e => { if (!walkSt.on || !lookLast || !(e.buttons || e.pointerType === 'touch')) return; walkSt.th -= (e.clientX - lookLast[0])*.0045; walkSt.pitch = Math.max(-1, Math.min(1, walkSt.pitch + (e.clientY - lookLast[1])*.0035)); lookLast = [e.clientX, e.clientY]; });
+addEventListener('pointerup', () => { lookLast = null; }); addEventListener('pointercancel', () => { lookLast = null; });
+canvas.addEventListener('pointerup', e => {
+  if (!down || Math.hypot(e.clientX-down[0], e.clientY-down[1]) > 6) return;
+  const o = hit(e); if (o) select(o.userData.it.id); else if (e.pointerType !== 'mouse') { const id = nearPick(e); if (id) select(id); }
+});
+canvas.addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse') return;
+  const o = hit(e);
+  if (o !== hover) {
+    if (hover && hover.material.color && hover.userData.it.kind === 'poster') hover.material.color.set(0xffffff);
+    hover = o; if (o && o.userData.it.kind === 'poster') o.material.color.set(0xffe9a6);
+    canvas.style.cursor = o ? 'pointer' : 'grab';
+  }
+});
+addEventListener('keydown', e => { if (e.key === 'Escape') { closeSheet(); drawer.classList.remove('open'); } });
+
+/* ───────── 導覽與移動（手機友善）：下一區跳轉＋圓形搖桿 ───────── */
+{
+  // 下一區：鏡頭飛到該區上方的斜俯視角（不開資訊卡），使用者再自己點海報
+  let zi = -1, tt = 0;
+  const toast = t => { const el = $('zt'); el.textContent = t; el.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('on'), 2600); };
+  window.zoneToast = toast;
+  const goZone = i => {
+    exitWalk(); zi = (i + ZONES.length) % ZONES.length; const z = ZONES[zi]; closeSheet(); drawer.classList.remove('open');
+    const t = V(z[2], z[3], 1.3), k = Math.max(1, .95/camera.aspect), off = new THREE.Vector3(...(z[6] || [1.2, 5.4, 8.4])).multiplyScalar(k);
+    flyTo(t.clone().add(off).toArray(), t.toArray(), 1000);
+    document.querySelectorAll('.views [data-view]').forEach(b => b.setAttribute('aria-pressed', 'false'));
+    toast(`${z[0]}　${z[1]}　（${zi + 1}/${ZONES.length}）`);
+  };
+  $('chips').innerHTML = ZONES.map((z, i) => `<button data-i="${i}"><b>${z[0]}</b>${z[1]}</button>`).join('');
+  $('chips').onclick = e => { const b = e.target.closest('[data-i]'); if (b) goZone(+b.dataset.i); };
+  ['tPrev','tPrev2'].forEach(k => $(k).onclick = () => goZone(zi < 0 ? ZONES.length-1 : zi-1)); ['tNext','tNext2'].forEach(k => $(k).onclick = () => goZone(zi + 1));
+  const zoom = f => { const d = camera.position.clone().sub(controls.target), n = Math.min(controls.maxDistance, Math.max(controls.minDistance, d.length()*f)); camera.position.copy(controls.target).addScaledVector(d.normalize(), n); fly = null; };
+  $('zIn').onclick = () => zoom(1/1.35); $('zOut').onclick = () => zoom(1.35);
+  $('bHome').onclick = () => { closeSheet(); zi = -1; setView('hualien'); };   // 回到起點（會離開眼高模式）
+  // 圓形搖桿（類似 Roblox）：按住圓盤往想去的方向推，方向＝推的方向，速度＝推多遠
+  const joy = { x:0, y:0 }, base = $('joy'), knob = $('knob'), R = 46; let pid = null;
+  const setJoy = e => {
+    const r = base.getBoundingClientRect(), cx = r.left + r.width/2, cy = r.top + r.height/2; let dx = e.clientX - cx, dy = e.clientY - cy; const d = Math.hypot(dx, dy);
+    if (d > R) { dx *= R/d; dy *= R/d; } knob.style.transform = `translate(${dx}px,${dy}px)`;
+    const m = Math.min(1, Math.hypot(dx, dy)/R), dead = .14, mm = m < dead ? 0 : (m - dead)/(1 - dead);    // 中間一小圈不動，避免手指微抖
+    joy.x = m ? dx/(m*R)*mm : 0; joy.y = m ? dy/(m*R)*mm : 0;
+  };
+  base.addEventListener('pointerdown', e => { e.preventDefault(); pid = e.pointerId; try { base.setPointerCapture(pid); } catch (err) {} base.classList.add('on'); closeSheet(); if (!walkSt.on) enterWalk(); else fly = null; setJoy(e); });
+  base.addEventListener('pointermove', e => { if (e.pointerId === pid) setJoy(e); });
+  const end = e => { if (e.pointerId !== pid) return; pid = null; joy.x = joy.y = 0; knob.style.transform = ''; base.classList.remove('on'); };
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => base.addEventListener(t, end));
+  // 鍵盤（電腦）
+  const mv = { f:0, b:0, l:0, r:0 };
+  const KEYS = { w:'f', ArrowUp:'f', s:'b', ArrowDown:'b', a:'l', ArrowLeft:'l', d:'r', ArrowRight:'r' };
+  addEventListener('keydown', e => { const k = KEYS[e.key]; if (k && !e.metaKey && !e.ctrlKey && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) { mv[k] = 1; if (!walkSt.on) enterWalk(); else fly = null; e.preventDefault(); } });
+  addEventListener('keyup', e => { const k = KEYS[e.key]; if (k) mv[k] = 0; });
+  window.stepMove = dt => {
+    const f = Math.max(-1, Math.min(1, mv.f - mv.b - joy.y)), r = Math.max(-1, Math.min(1, mv.r - mv.l + joy.x)); if (Math.abs(f) < 1e-3 && Math.abs(r) < 1e-3) return;
+    const mag = Math.min(1, Math.hypot(f, r));
+    if (walkSt.on) {                                                                              // 眼高：像人一樣走，碰到牆或櫃檯就停（會順著牆滑）
+      if (fly) return; const th = walkSt.th, dirW = new THREE.Vector3(Math.sin(th), 0, -Math.cos(th)), rightW = new THREE.Vector3(Math.cos(th), 0, Math.sin(th));
+      const stepW = new THREE.Vector3().addScaledVector(dirW, f).addScaledVector(rightW, r).multiplyScalar(2.6*dt*(.3 + .7*mag));
+      const blockedW = v => { if (v.lengthSq() < 1e-8) return false; const o = new THREE.Vector3(camera.position.x, 1.1, camera.position.z); return new THREE.Raycaster(o, v.clone().normalize(), 0, .5 + v.length()).intersectObjects(solids, false).length > 0; };
+      if (blockedW(stepW)) { const sx = new THREE.Vector3(stepW.x, 0, 0), sz = new THREE.Vector3(0, 0, stepW.z); stepW.set(blockedW(sx) ? 0 : stepW.x, 0, blockedW(sz) ? 0 : stepW.z); }
+      camera.position.x = Math.min(46, Math.max(-1.5, camera.position.x + stepW.x)); camera.position.z = Math.min(19, Math.max(-5, camera.position.z + stepW.z)); return;
+    }
+    const dir = new THREE.Vector3(); camera.getWorldDirection(dir); dir.y = 0; if (dir.lengthSq() < 1e-4) dir.set(0, 0, -1); dir.normalize();
+    const right = new THREE.Vector3(-dir.z, 0, dir.x), step = new THREE.Vector3().addScaledVector(dir, f).addScaledVector(right, r).multiplyScalar(5.2*dt*(.35 + .65*mag));   // 推越遠越快
+    const blocked = v => { if (v.lengthSq() < 1e-8) return false; const o = new THREE.Vector3(camera.position.x, 1.1, camera.position.z); return new THREE.Raycaster(o, v.clone().normalize(), 0, .55 + v.length()).intersectObjects(solids, false).length > 0; };
+    if (camera.position.y < 3 && blocked(step)) { const sx = new THREE.Vector3(step.x, 0, 0), sz = new THREE.Vector3(0, 0, step.z); step.set(blocked(sx) ? 0 : step.x, 0, blocked(sz) ? 0 : step.z); }
+    const t = controls.target.clone().add(step); t.x = Math.min(46, Math.max(-1.5, t.x)); t.z = Math.min(19, Math.max(-5, t.z));   // 限制「觀看的中心點」不要走出展場（鏡頭在高處時本身可以在範圍外）
+    step.copy(t).sub(controls.target); camera.position.add(step); controls.target.add(step);
+  };
+  // 手機點海報很容易點偏：沒點中時，找離手指最近（34px 內）、朝向鏡頭、沒被擋住的海報
+  window.nearPick = e => {
+    const r = canvas.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top; let best = null, bd = 34;
+    pick.forEach(m => {
+      const it = m.userData.it; if (!it || (it.kind !== 'poster' && it.kind !== 'spot')) return;
+      const w = m.getWorldPosition(new THREE.Vector3()), v = w.clone().project(camera); if (v.z > 1) return;
+      const sx = (v.x*.5 + .5)*r.width, sy = (-v.y*.5 + .5)*r.height, d = Math.hypot(sx - px, sy - py); if (d >= bd) return;
+      const n = new THREE.Vector3(0, 0, 1).applyQuaternion(m.getWorldQuaternion(new THREE.Quaternion())), to = camera.position.clone().sub(w), dist = to.length();
+      if (n.dot(to.normalize()) < .15) return;
+      const rc = new THREE.Raycaster(camera.position, w.clone().sub(camera.position).normalize(), 0, dist - .25); if (rc.intersectObjects(solids, false).length) return;
+      bd = d; best = it.id;
+    });
+    return best;
+  };
+}
+
+
+/* ───────── 迴圈 ───────── */
+function resize() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); camera.aspect = w/h; camera.updateProjectionMatrix();
+  const f = Math.min(1, .12 + w/h*.9); labels.forEach(l => l.scale.set(l.userData.base[0]*f, l.userData.base[1]*f, 1)); }   // 直式螢幕把標籤縮小
+addEventListener('resize', resize); resize();
+addEventListener('pageshow', e => { if (e.persisted) location.reload(); });   // 手機瀏覽器按上一頁／從快取還原時也重新載入，讓院長重新走一遍
+setView(willGreet ? 'all' : 'hualien', true);                 // 開場先看全景，停 1 秒後鏡頭切到花蓮展區，院長才走出來
+if (willGreet) setTimeout(() => { if (!document.getElementById('sheet').classList.contains('open')) setView('hualien'); }, 1000);
+const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let last = performance.now();
+(function tick(now) {
+  const raw = (now-last)/1000, dt = Math.min(.05, raw); last = now;
+  if (fly) {
+    const k = Math.min(1, (now-fly.s)/fly.ms), e = still ? 1 : k*k*(3-2*k);
+    camera.position.lerpVectors(fly.p0, fly.p1, e); controls.target.lerpVectors(fly.t0, fly.t1, e);
+    if (k >= 1) fly = null;
+  }
+  stepMove(Math.min(.1, raw));
+  if (walkSt.on && !fly) { camera.position.y += (EYE - camera.position.y)*Math.min(1, raw*6); controls.target.copy(camera.position).add(fwdOf()); }
+  if (!still) stepWalkers(dt, camera);
+  host.update(now, still); host.step(now, Math.min(.3, raw), camera); vice.step(now, Math.min(.3, raw), camera); lecturer.step(now, Math.min(.3, raw), camera);
+
+  controls.update(); renderer.render(scene, camera); requestAnimationFrame(tick);
+})(last);
+{
+  const KEY = 'expo-guide-seen-v1'; let seen = false; try { seen = localStorage.getItem(KEY) === '1'; } catch (e) {}
+  if (seen || willGreet) $('hint').classList.add('off');
+  window.showGuide = () => { if (!seen) { seen = true; $('hint').classList.remove('off'); } };
+  $('gOk').onclick = () => { $('hint').classList.add('off'); try { localStorage.setItem(KEY, '1'); } catch (e) {} };
+  $('bHelp').onclick = () => { closeSheet(); $('hint').classList.toggle('off'); };
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "expo-3d",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8766", "--directory", "/Users/peter/00_Workspace/Repo/23_expo/site"],
+      "port": 8766
+    },
+    {
+      "name": "expo-deploy",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8767", "--directory", "/Users/peter/00_Workspace/Repo/23_expo/expo-deploy"],
+      "port": 8767
+    }
+  ]
+}
