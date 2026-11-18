@@ -6,6 +6,34 @@
 - 上線網址：<https://hlm.tzuchi.com.tw/vr/expo2026/>
 - 回專網：畫面右上角「‹ 回專網」連到 <https://hlm.tzuchi.com.tw/home/index.php/expo>
 
+## 系統截圖
+
+以下為本機開發版畫面（1280×800 桌機、390×844 手機）。
+
+**首次開啟：林欣榮院長走出來迎賓**
+![展區總覽與院長迎賓](docs/screenshots/01-overview-host.jpg)
+
+**全景與俯視**
+
+| 全景 | 俯視 |
+|---|---|
+| ![全景](docs/screenshots/02-panorama.jpg) | ![俯視](docs/screenshots/03-top-view.jpg) |
+
+**點選海報，開資訊卡**
+![海報資訊卡](docs/screenshots/04-poster-card.jpg)
+
+**大舞台上的蔡昇宗副院長**
+![大舞台](docs/screenshots/05-stage-lecturer.jpg)
+
+**品牌牆旁的陳星助副院長（走近或點選會說歡迎詞）**
+![品牌牆旁迎賓](docs/screenshots/06-greeter-brandwall.jpg)
+
+**手機版：圓形搖桿與「下一區」按鈕**
+
+| 展區畫面 | 海報資訊卡 |
+|---|---|
+| <img src="docs/screenshots/08-mobile-joystick.jpg" width="280"> | <img src="docs/screenshots/09-mobile-poster-card.jpg" width="280"> |
+
 ## 功能
 
 **瀏覽**
@@ -47,7 +75,8 @@ G 形象打卡牆 → E 舞台 → F 小櫃台（品牌牆）→ A 儲藏室 →
 ├── expo-deploy/          上傳用的部署版（由 build_deploy.py 產生）
 │   └── js/               three.js、OrbitControls、GLTFLoader（本機版，不依賴外網）
 ├── expo-deploy.zip       部署版壓縮檔
-├── source_assets/        人偶原始高解析 .glb、進度報告簡報
+├── docs/screenshots/     README 用的系統截圖
+├── source_assets/        人偶原始高解析 .glb
 ├── build_deploy.py       site/ → expo-deploy/
 ├── update_poster_list.py 更新海報檔名清單
 ├── 更新說明.md            給負責更新海報的人看的簡短說明
