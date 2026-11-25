@@ -86,7 +86,11 @@
   .sheet.open{transform:none}
   @media (min-width:860px){
     .sheet{left:auto;right:16px;top:76px;bottom:16px;width:380px;max-height:none;border-radius:18px;transform:translateX(calc(100% + 24px))}
+    .drawer{left:auto;right:0;transform:translateX(102%);box-shadow:-8px 0 30px rgba(16,24,40,.18)}   /* 電腦版：清單從畫面右邊彈出（滑鼠移到最右邊就會出現） */
+    .edgetab{display:block}
   }
+  .edgetab{display:none;position:fixed;z-index:4;right:0;top:50%;transform:translateY(-50%);padding:14px 7px;background:rgba(23,51,107,.88);color:#fff;font-size:13px;letter-spacing:.2em;border-radius:10px 0 0 10px;writing-mode:vertical-rl;pointer-events:none;opacity:.85;transition:opacity .2s}
+  body.sheetopen .edgetab,body.walking .edgetab{opacity:0}
   .sheet .head{padding:16px 18px 12px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start}
   .sheet .code{flex:none;background:var(--navy);color:#fff;font-weight:700;border-radius:10px;padding:6px 10px;font-size:14px;font-variant-numeric:tabular-nums}
   .sheet .code.z{background:var(--green)}
@@ -168,11 +172,12 @@
     <li><i>↻</i><span><em>轉動／轉頭</em><span class="m">按住左鍵拖曳</span><span class="t">單指拖曳</span></span></li>
     <li><i>⤢</i><span><em>縮放</em><span class="m">滾動滾輪</span><span class="t">雙指開合</span></span></li>
     <li><i>◎</i><span><em>移動</em><span class="m">W A S D 或方向鍵</span><span class="t">按住左下角圓盤推動</span></span></li>
-    <li><i>☝</i><span><em>看介紹</em><span>點海報；下方「下一區」快速換區</span></span></li>
+    <li><i>☝</i><span><em>看介紹</em><span class="m">點海報；滑鼠移到畫面最右邊展開清單；下方「下一區」換區</span><span class="t">點海報；下方「下一區」快速換區</span></span></li>
   </ul>
   <button id="gOk">知道了</button>
 </div>
 
+<div class="edgetab" aria-hidden="true">◂ 清單</div>
 <aside class="drawer" id="drawer" aria-label="展區清單">
   <header><b>花蓮展區清單</b><button id="bClose" aria-label="關閉">✕</button></header>
   <div class="body" id="list"></div>
@@ -1129,7 +1134,14 @@ const intro = (() => {
 })();
 
 // 選取框
-const frame = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color:0xf5b301 }));
+// 選取框：只有四條邊（空心）。原本是整塊黃色底板，遇到透明背景的海報（例如 A44 飛天線條直接呈現在牆上）會整片變黃
+const frame = new THREE.Group(), frameMat = new THREE.MeshBasicMaterial({ color:0xf5b301 }), frameBars = [0, 1, 2, 3].map(() => { const b = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), frameMat); frame.add(b); return b; });
+frame.setSize = (w, h, t = .07) => {   // 四條邊：上、下（含四角）、左、右
+  frameBars[0].scale.set(w + 2*t, t, 1); frameBars[0].position.set(0, h/2 + t/2, 0);
+  frameBars[1].scale.set(w + 2*t, t, 1); frameBars[1].position.set(0, -h/2 - t/2, 0);
+  frameBars[2].scale.set(t, h, 1); frameBars[2].position.set(-w/2 - t/2, 0, 0);
+  frameBars[3].scale.set(t, h, 1); frameBars[3].position.set(w/2 + t/2, 0, 0);
+};
 frame.visible = false; scene.add(frame);
 
 // 參觀民眾：用你先前 AI 生成的黏土風角色表（assets/people/c0–c11.png）。換成新的角色圖只要覆蓋這些檔案
@@ -1304,7 +1316,7 @@ function select(id) {
     else flyTo([c.x + 1.5, 8.5, c.z + 9], [c.x + (wide ? 1.5 : 0), 1, c.z + (wide ? 0 : 1.2)]);
   } else {
     const m = it.mesh, n = new THREE.Vector3(0, 0, 1).applyQuaternion(m.quaternion);
-    const g = { width: m.geometry.parameters.width*m.scale.x, height: m.geometry.parameters.height*m.scale.y }; frame.scale.set(g.width + .14, g.height + .14, 1);   // 依目前實際顯示大小（海報可能被依圖片比例縮小）
+    const g = { width: m.geometry.parameters.width*m.scale.x, height: m.geometry.parameters.height*m.scale.y }; frame.setSize(g.width, g.height);   // 依目前實際顯示大小（海報可能被依圖片比例縮小）
     frame.position.copy(m.position).addScaledVector(n, -.012); frame.quaternion.copy(m.quaternion); frame.visible = true;
     const tall = camera.aspect < 1, best = posterView(m, n, g, wide, tall);
     if (best) flyTo(best.pos.toArray(), best.tgt.toArray());
@@ -1326,6 +1338,15 @@ function closeSheet() { sheet.classList.remove('open'); document.body.classList.
 $('sX').onclick = closeSheet;
 $('sCont').onclick = e => { const b = e.target.closest('[data-go]'); if (b) select(b.dataset.go); };
 $('bList').onclick = () => drawer.classList.toggle('open');
+// 電腦版：滑鼠移到畫面最右邊，清單就從右邊彈出；滑鼠離開清單後自動收起（資訊卡開著、正在拖曳畫面時不彈出）
+{ let hideT = 0;
+  addEventListener('mousemove', e => {
+    if (innerWidth < 860 || e.buttons || document.body.classList.contains('sheetopen')) return;
+    if (e.clientX >= innerWidth - 14 && !drawer.classList.contains('open')) { clearTimeout(hideT); drawer.classList.add('open'); }
+  });
+  drawer.addEventListener('mouseenter', () => clearTimeout(hideT));
+  drawer.addEventListener('mouseleave', () => { if (innerWidth >= 860) { clearTimeout(hideT); hideT = setTimeout(() => drawer.classList.remove('open'), 350); } });
+}
 $('bClose').onclick = () => drawer.classList.remove('open');
 {
   const units = {}; POSTERS.forEach(p => { (units[p[1] || '待確認'] = units[p[1] || '待確認'] || []).push(p[0]); });
