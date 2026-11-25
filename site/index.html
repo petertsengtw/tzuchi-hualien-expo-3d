@@ -633,8 +633,8 @@ function special(id, title, mesh, where, desc, shots, face, x, y) {
   posterMesh[id] = mesh;   // posters/ 裡放同編號的圖檔（例如 A42.jpg）就會取代預設的設計圖貼圖
 }
 {
-  special('A42', '形象打卡牆 主視覺', plane(1.62, 2.5, new THREE.MeshBasicMaterial({ map: tex('t_led.jpg') }), 222, 118, 1.85, 'S', .04), '灰色拱門立柱・朝前方走道',
-    '「慈濟醫療 40・中西醫精準醫療」主視覺，是花蓮展區面向 6 米走道的入口地標。', ['r_entry','p_entry'], 'S', 222, 118);
+  special('A42', '形象打卡牆 主視覺', plane(1.62, 2.5, new THREE.MeshBasicMaterial({ map: tex('t_led.jpg') }), 238, 118, 1.85, 'S', .08), '灰色拱門立柱・朝前方走道',
+    '「慈濟醫療 40・中西醫精準醫療」主視覺，是花蓮展區面向 6 米走道的入口地標。', ['r_entry','p_entry'], 'S', 238, 118);   // 往右移 16 公分、離牆 8 公分：弧形牆左側會往前凸，原位置左緣約 5% 被牆擋住
   special('A43', '舞台螢幕（65 吋）', plane(5.45, 1.7, new THREE.MeshBasicMaterial({ map: tex('t_banner.jpg') }), 250, 472.5, 1.7, 'W', .02), '舞台背牆・朝左',
     '小舞台的背牆，有「醫愛四十」主視覺與 65 吋螢幕，前方設有座椅。', ['r_edu','p_wall'], 'W', 250, 472);
   special('A44', '舞台側牆・飛天圖案', plane(1.3, 1.046, new THREE.MeshBasicMaterial({ map: tex('a44_art.png'), transparent:true, depthWrite:false }), 165, 201, 1.8, 'N', .03), '舞台前側牆面（與橫幅牆垂直）・朝後方',
