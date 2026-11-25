@@ -541,6 +541,12 @@ function posterTex(id, unit, pw) {
   lines.forEach((l, i) => g.fillText(l, X, 275 + (i - (lines.length-1)/2)*s*1.15));
   const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
 }
+// 資訊卡內容：合併組可以把文字填在組內任一個編號，取第一個有填的；沒有就取點選的那個編號
+function pickContent(it, id) {
+  const C = window.CONTENT || {}, has = c => c && (c.title || c.text || c.video);
+  for (const k of (it.ids || [it.id])) if (has(C[k])) return C[k];
+  return C[id] || {};
+}
 function register(mesh, it) { mesh.userData.it = it; it.mesh = mesh; pick.push(mesh); items[it.id] = it; }
 // 海報圖檔：先讀 posters/ 的檔案清單，只載入真的存在的圖，避免對每個編號亂試而產生一堆 404
 const posterMesh = {};
@@ -562,8 +568,8 @@ function loadPosters() {
 }
 // 合併海報組：廠商的一張大圖貼在相鄰的幾個攤位時，在 content.js 用 window.MERGE = [["A02","A03"]] 設定。
 // 畫面上畫成一張寬海報，點其中任何一個編號都開同一張資訊卡；圖檔、文字都用第一個編號（例如 A02.jpg、"A02"）。
-// content.js 沒有寫 MERGE 時，預設合併 A02–A03、A37–A38；寫 window.MERGE = [] 就全部不合併。
-const MERGE = Array.isArray(window.MERGE) ? window.MERGE : [['A02', 'A03'], ['A37', 'A38']];
+// content.js 沒有寫 MERGE 時，使用這裡的預設組合；寫 window.MERGE = [] 就全部不合併。
+const MERGE = Array.isArray(window.MERGE) ? window.MERGE : [['A02', 'A03'], ['A04', 'A05'], ['A18-1', 'A18', 'A19'], ['A20-1', 'A20', 'A21'], ['A33', 'A34', 'A35', 'A36'], ['A37', 'A38'], ['A39', 'A40']];
 const mergedSkip = new Set();                       // 被併進前一張的編號（不另外畫海報）
 MERGE.forEach(g => {
   const rows = g.map(id => POSTERS.find(p => p[0] === id)); if (rows.length < 2 || rows.some(r => !r)) return;   // 編號不存在就不合併
@@ -573,7 +579,7 @@ MERGE.forEach(g => {
 POSTERS.forEach(row => {
   const [id, unit, x, y, face, w, pw0] = row; if (mergedSkip.has(id)) return;
   const grp = row.group || [row]; let X = x, Y = y, pw = pw0, label = id;
-  if (row.group) { const a = grp[0], b = grp[grp.length - 1]; X = (a[2] + b[2])/2; Y = (a[3] + b[3])/2; pw = Math.hypot(b[2] - a[2], b[3] - a[3])/100 + .9; label = id + '–' + b[0]; }   // 寬度 = 首尾中心距離 + 一張海報寬
+  if (row.group) { const a = grp[0], b = grp[grp.length - 1]; X = (a[2] + b[2])/2; Y = (a[3] + b[3])/2; pw = Math.hypot(b[2] - a[2], b[3] - a[3])/100 + .9; label = id + '～' + b[0]; }   // 寬度 = 首尾中心距離 + 一張海報寬
   const m = plane(pw || .9, 1.25, new THREE.MeshBasicMaterial({ map: posterTex(label, unit, pw) }), X, Y, 1.58, face, .075);
   const it = { id, kind:'poster', unit, title: unit || '單位待確認', x:X, y:Y, face, wall:w, label: row.group ? label : undefined, ids: grp.map(r => r[0]),
     where: `${WALL_NAME[w]}・${FACE_NAME[face]}`, shots: WALL_SHOTS[w] || [] };
@@ -1037,7 +1043,7 @@ function select(id) {
     if (!it.unit) h += `<div class="note">位置圖上這個編號沒有標示單位，請確認後補上。</div>`;
     else h += `<p>這是 <b>${it.unit}</b> 的海報位置${same.length > 1 ? `，該單位共有 ${same.length} 面` : ''}。</p>`;
     if (same.length > 1) h += `<div class="chips">${same.map(s => `<button data-go="${s}" class="${s === id ? 'on' : ''}">${s}</button>`).join('')}</div>`;
-    const c = (window.CONTENT || {})[it.id] || (window.CONTENT || {})[id] || {};
+    const c = pickContent(it, id);
     if (c.title) $('sTitle').textContent = c.title, $('sWhere').textContent = `${it.unit || '單位待確認'}・${it.where}`;
     if (c.text) h += String(c.text).split(/\n+/).map(t => `<p>${t.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</p>`).join('');
     if (c.video) h += `<div class="shots"><video controls playsinline preload="metadata" src="posters/${c.video}"></video></div>`;
@@ -1070,7 +1076,7 @@ function select(id) {
     const g = { width: m.geometry.parameters.width*m.scale.x, height: m.geometry.parameters.height*m.scale.y }; frame.scale.set(g.width + .14, g.height + .14, 1);   // 依目前實際顯示大小（海報可能被依圖片比例縮小）
     frame.position.copy(m.position).addScaledVector(n, -.012); frame.quaternion.copy(m.quaternion); frame.visible = true;
     const tall = camera.aspect < 1, right = new THREE.Vector3(n.z, 0, -n.x), sh = wide ? 1.2 : 0;
-    const dist = Math.max(4.3, g.height*2.1, g.width*3.8) * (tall ? 1.55 : 1);
+    const dist = Math.max(4.3, g.height*2.1, g.width*1.7) * (tall ? 1.55 : 1);
     const tgt = m.position.clone().addScaledVector(right, sh); tgt.y -= wide ? .1 : (tall ? 1.3 : .9);
     const pos = m.position.clone().addScaledVector(n, dist).addScaledVector(right, sh); pos.y = tall ? 4.2 : 3.0;
     // 鏡頭若會卡進牆或拱門，就往前拉到障礙物前面
