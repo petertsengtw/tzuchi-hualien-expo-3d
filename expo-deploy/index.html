@@ -580,10 +580,10 @@ POSTERS.forEach(row => {
     where: `${WALL_NAME[w]}・${FACE_NAME[face]}`, shots: WALL_SHOTS[w] || [] };
   register(m, it); grp.forEach(r => { posterMesh[r[0]] = m; items[r[0]] = it; });   // 組內每個編號都指向同一張海報與同一個資訊卡
 });
-loadPosters();
 // 特殊位置：主視覺、舞台螢幕、品牌牆、書牆
 function special(id, title, mesh, where, desc, shots, face, x, y) {
   register(mesh, { id, kind:'spot', unit:title, title, where, desc, shots, face, x, y });
+  posterMesh[id] = mesh;   // posters/ 裡放同編號的圖檔（例如 A42.jpg）就會取代預設的設計圖貼圖
 }
 {
   special('A42', '形象打卡牆 主視覺', plane(1.62, 2.5, new THREE.MeshBasicMaterial({ map: tex('t_led.jpg') }), 222, 118, 1.85, 'S', .04), '灰色拱門立柱・朝前方走道',
@@ -602,6 +602,7 @@ function special(id, title, mesh, where, desc, shots, face, x, y) {
   special('A46', '《超仁》書牆', plane(.82, 1.15, new THREE.MeshBasicMaterial({ map: tex('t_book.jpg') }), 462, 1410, 1.75, -Math.PI/4, .08), '接待專區・白色主牆左端',
     '《超仁：花蓮慈濟醫院的韌性醫療與使命》書封展示，位在接待專區。', ['p_book'], -Math.PI/4, 462, 1410);
 }
+loadPosters();   // 要等特殊位置（A42–A46）也建立好，才能把 posters/ 的圖檔貼上去
 // 功能區標籤
 const labels = [];
 function label(text, x, y, h, opt={}) {
@@ -1043,7 +1044,16 @@ function select(id) {
     if (c.video) h += `<div class="shots"><video controls playsinline preload="metadata" src="posters/${c.video}"></video></div>`;
     if (it.img) h += `<div class="lbl">海報</div><div class="shots"><a href="${it.img}" target="_blank" rel="noopener"><img src="${it.img}" alt="${it.id} 海報"></a></div>`;
     if (!c.text && !c.video && !it.img) h += `<div class="note">海報內容尚未提供。之後可在這裡放海報圖檔、介紹文字或影片。</div>`;
-  } else h += `<p>${it.desc}</p>`;
+  } else {
+    h += `<p>${it.desc}</p>`;
+    if (it.kind === 'spot') {   // 特殊位置（A42–A46）：也可以在 content.js 填標題、文字、影片，並顯示 posters/ 的圖檔
+      const c = (window.CONTENT || {})[id] || {};
+      if (c.title) $('sTitle').textContent = c.title;
+      if (c.text) h += String(c.text).split(/\n+/).map(t => `<p>${t.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</p>`).join('');
+      if (c.video) h += `<div class="shots"><video controls playsinline preload="metadata" src="posters/${c.video}"></video></div>`;
+      if (it.img) h += `<div class="lbl">海報</div><div class="shots"><a href="${it.img}" target="_blank" rel="noopener"><img src="${it.img}" alt="${it.id} 海報"></a></div>`;
+    }
+  }
   if (it.shots && it.shots.length) h += `<div class="lbl">設計圖</div><div class="shots">${it.shots.map(s => `<img loading="lazy" src="${A}${s}.jpg" alt="${it.title} 設計圖">`).join('')}</div>`;
   if (it.kind === 'poster' || it.kind === 'spot') { const i = order.indexOf(it.id); h += `<div class="nav2"><button data-go="${order[(i-1+order.length)%order.length]}">← 上一個</button><button data-go="${order[(i+1)%order.length]}">下一個 →</button></div>`; }
   $('sCont').innerHTML = h; $('sCont').scrollTop = 0; sheet.classList.add('open');
