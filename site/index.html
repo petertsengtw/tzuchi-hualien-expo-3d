@@ -795,7 +795,7 @@ const host = (() => {
   const it_ = { id:'歡迎', kind:'host', unit:'林欣榮院長', title:'林欣榮院長', x:390, y:-24, where:'花蓮慈濟醫學中心・展區入口',
     desc:'歡迎參觀花蓮慈院展區！點選展場裡的海報或綠色標籤，可以看每個單位的介紹。', shots:[] };
   items['歡迎'] = it_; proxy.userData.it = it_; it_.mesh = proxy; pick.push(proxy);
-  o.update = () => {};
+  o.update = () => {}; o.route = route; o.seg = seg; o.total0 = total0; o.HOME = HOME; o.FINAL = FINAL;
   const turn = (to, dt) => { let d = to - o.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); o.yaw += d*Math.min(1, dt*9); m.rotation.y = o.yaw; };
   o.step = (now, dt, cam) => {
     if (!o.ready) return;
@@ -843,6 +843,7 @@ const vice = (() => {
   items['導覽'] = it_; proxy.userData.it = it_; it_.mesh = proxy; pick.push(proxy);
   o.step = (now, dt, cam) => {
     if (!rig.ready) return;
+    if (o.ctl) { o.wt += dt; o.yaw = o.ctl.yaw; m.rotation.y = o.yaw; m.position.y = o.ctl.bob; rig.pose(o.ctl.walk, o.ctl.ph, 0, o.wt, 0, -1, 0); return; }   // 開場「跟著院長走到前方、再走回定位」時，由 intro 控制位置與走路動作
     o.wt += dt;
     const speaking = now < o.sayUntil; o.up += ((speaking ? 1 : 0) - o.up)*Math.min(1, dt*5);   // 說話時舉手
     const dx = cam.position.x - g.position.x, dz = cam.position.z - g.position.z, hd = Math.max(1, Math.hypot(dx, dz)), d = Math.atan2(dx, dz);
@@ -870,6 +871,7 @@ const lecturer = (() => {
   items['講課'] = it_; proxy.userData.it = it_; it_.mesh = proxy; pick.push(proxy);
   o.step = (now, dt, cam) => {
     if (!rig.ready) return;
+    if (o.ctl) { o.wt += dt; o.yaw = o.ctl.yaw; m.rotation.y = o.yaw; m.position.y = o.ctl.bob; rig.pose(o.ctl.walk, o.ctl.ph, 0, o.wt, 0, 1, 0); return; }   // 開場「跟著院長走到前方、再走回定位」時，由 intro 控制位置與走路動作
     o.wt += dt;
     let walk = 0, vx = 0;
     if (o.mode === 'stand') { if (o.wt > o.next) { o.mode = 'walk'; let t; do { t = 1990 + Math.random()*330; } while (Math.abs(t - g.position.x*100) < 60); o.tx = t; } }   // 偶爾走到舞台左半邊的另一個位置
@@ -902,6 +904,7 @@ const chen = (() => {
   items['迎賓'] = it_; proxy.userData.it = it_; it_.mesh = proxy; pick.push(proxy);
   o.step = (now, dt, cam) => {
     if (!rig.ready) return;
+    if (o.ctl) { o.wt += dt; o.yaw = o.ctl.yaw; m.rotation.y = o.yaw; m.position.y = o.ctl.bob; rig.pose(o.ctl.walk, o.ctl.ph, 0, o.wt, 0, 1, 0); return; }   // 開場「跟著院長走到前方、再走回定位」時，由 intro 控制位置與走路動作
     o.wt += dt;
     const dx = cam.position.x - g.position.x, dz = cam.position.z - g.position.z, hd = Math.max(1, Math.hypot(dx, dz));
     if (!o.greeted && hd < 11 && !document.body.classList.contains('sheetopen')) { o.greeted = true; hello(5000); }   // 走近時說一次歡迎詞
@@ -930,6 +933,7 @@ const chung = (() => {
   items['護理導覽'] = it_; proxy.userData.it = it_; it_.mesh = proxy; pick.push(proxy);
   o.step = (now, dt, cam) => {
     if (!rig.ready) return;
+    if (o.ctl) { o.wt += dt; o.yaw = o.ctl.yaw; m.rotation.y = o.yaw; m.position.y = o.ctl.bob; rig.pose(o.ctl.walk, o.ctl.ph, 0, o.wt, 0, 1, 0); return; }   // 開場「跟著院長走到前方、再走回定位」時，由 intro 控制位置與走路動作
     o.wt += dt;
     const dx = cam.position.x - g.position.x, dz = cam.position.z - g.position.z, hd = Math.max(1, Math.hypot(dx, dz)), d = Math.atan2(dx, dz);
     o.yaw += Math.atan2(Math.sin(d - o.yaw), Math.cos(d - o.yaw))*Math.min(1, dt*8); m.rotation.y = o.yaw;
@@ -956,6 +960,7 @@ const li = (() => {
   items['國醫導覽'] = it_; proxy.userData.it = it_; it_.mesh = proxy; pick.push(proxy);
   o.step = (now, dt, cam) => {
     if (!rig.ready) return;
+    if (o.ctl) { o.wt += dt; o.yaw = o.ctl.yaw; m.rotation.y = o.yaw; m.position.y = o.ctl.bob; rig.pose(o.ctl.walk, o.ctl.ph, 0, o.wt, 0, 1, 0); return; }   // 開場「跟著院長走到前方、再走回定位」時，由 intro 控制位置與走路動作
     o.wt += dt; let walk = 0, vx = 0;
     if (o.mode === 'stand') { if (o.wt > o.next) { o.mode = 'walk'; let t; do { t = X0 + Math.random()*(X1 - X0); } while (Math.abs(t - g.position.x*100) < 50); o.tx = t; } }   // 偶爾走到 A14、A15 前面的另一個位置
     else { const cx = g.position.x*100, dd = o.tx - cx, st = Math.min(Math.abs(dd), .6*dt*100);
@@ -969,6 +974,118 @@ const li = (() => {
     if (speaking) { const w = say6.offsetWidth/2 + 10, rs = (innerWidth >= 600 && document.body.classList.contains('sheetopen')) ? 340 : 0, x = Math.min(innerWidth - rs - w, Math.max(w, (v.x*.5 + .5)*innerWidth)); say6.style.left = x + 'px'; say6.style.top = ((-v.y*.5 + .5)*innerHeight) + 'px'; }
   };
   return o;
+})();
+
+/* ───────── 開場：院長帶領大家走到前方，院長說完歡迎詞後，每個人走回自己的定位點 ───────── */
+const intro = (() => {
+  const A = { vice:vice, lecturer:lecturer, chen:chen, chung:chung, li:li };
+  // 隨行者：gap 與 lat 是在院長後方的距離與左右位置（公尺）；slot 是到前方後站的位置（公分，院長在 390,-24）；home 是回去的定位點（公分）
+  const crew = [
+    { o:A.chen,     gap:1.2, lat:-.6, slot:[270, 34],  home:[-75, 770] },
+    { o:A.vice,     gap:1.2, lat: .6, slot:[345, 82],  home:[760, 545] },
+    { o:A.li,       gap:2.4, lat:-.6, slot:[435, 82],  home:[450, 1105] },
+    { o:A.chung,    gap:2.4, lat: .6, slot:[510, 34],  home:[1215, 1350] },
+    { o:A.lecturer, gap:3.6, lat: 0,  slot:[585, -8],  home:[2050, 345] },
+  ];
+  const st = { phase: willGreet ? 'follow' : 'off', t0:0 };
+  const stageY = (xc, yc) => { const dx = (xc - 2250)/420, dy = (yc - 330)/134; return dx*dx + dy*dy <= 1 ? .3 : 0; };   // 在大舞台範圍內要踩上 30 公分高的台面
+  // ── 路徑規劃：把牆、櫃檯、桌椅標在 20 公分的格子上（外擴 32 公分），用 A* 找路，再把彎彎曲曲的路拉直 ──
+  let grid = null; const CELL = 20, X0 = -300, Y0 = -300, NX = 250, NY = 100;
+  const buildGrid = () => {
+    const g = new Uint8Array(NX*NY), R = 32;
+    const mark = (cx0, cy0, cx1, cy1) => { for (let j = Math.max(0, Math.floor((cy0 - R - Y0)/CELL)); j <= Math.min(NY-1, Math.floor((cy1 + R - Y0)/CELL)); j++) for (let i = Math.max(0, Math.floor((cx0 - R - X0)/CELL)); i <= Math.min(NX-1, Math.floor((cx1 + R - X0)/CELL)); i++) g[j*NX + i] = 1; };
+    const b = new THREE.Box3();
+    const va = new THREE.Vector3(), vb = new THREE.Vector3(), vc = new THREE.Vector3();
+    solids.forEach(m => {
+      m.updateMatrixWorld(true);
+      if (m.geometry.type === 'BoxGeometry') { b.setFromObject(m); if (b.max.y < .15 || b.min.y > 1.8) return; mark(b.min.x*100, 1500 - b.max.z*100, b.max.x*100, 1500 - b.min.z*100); return; }   // 方塊：用外框
+      // 弧形牆等非方塊：外框會涵蓋整個展場，改成沿著每個三角形的邊取樣，只標出牆真正所在的位置
+      const pos = m.geometry.attributes.position, idx = m.geometry.index, n = idx ? idx.count : pos.count;
+      for (let t = 0; t + 2 < n; t += 3) {
+        va.fromBufferAttribute(pos, idx ? idx.getX(t) : t).applyMatrix4(m.matrixWorld); vb.fromBufferAttribute(pos, idx ? idx.getX(t+1) : t+1).applyMatrix4(m.matrixWorld); vc.fromBufferAttribute(pos, idx ? idx.getX(t+2) : t+2).applyMatrix4(m.matrixWorld);
+        if (Math.min(va.y, vb.y, vc.y) > 1.8 || Math.max(va.y, vb.y, vc.y) < .15) continue;
+        [[va, vb], [vb, vc], [vc, va]].forEach(([p, q]) => { const L = Math.hypot(q.x - p.x, q.z - p.z)*100, k = Math.max(1, Math.ceil(L/10)); for (let i = 0; i <= k; i++) { const x = (p.x + (q.x - p.x)*i/k)*100, y = 1500 - (p.z + (q.z - p.z)*i/k)*100; mark(x, y, x, y); } });
+      }
+    });
+    CH.forEach(c => mark(c[0] - 25, c[1] - 25, c[0] + 25, c[1] + 25));
+    TB.forEach(t => { const w = t[2] === 'rect' ? 75 : t[2] === 'hi' ? 31 : 40, d = t[2] === 'rect' ? 38 : t[2] === 'hi' ? 31 : 40; mark(t[0] - w, t[1] - d, t[0] + w, t[1] + d); });
+    return g;
+  };
+  const cellOf = (x, y) => [Math.min(NX-1, Math.max(0, Math.floor((x - X0)/CELL))), Math.min(NY-1, Math.max(0, Math.floor((y - Y0)/CELL)))];
+  const free = (i, j) => i >= 0 && j >= 0 && i < NX && j < NY && !grid[j*NX + i];
+  const snap = (i, j) => { if (free(i, j)) return [i, j]; for (let r = 1; r < 12; r++) for (let dj = -r; dj <= r; dj++) for (let di = -r; di <= r; di++) if (Math.max(Math.abs(di), Math.abs(dj)) === r && free(i + di, j + dj)) return [i + di, j + dj]; return [i, j]; };
+  const los = (a, b) => { const n = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1])/(CELL*.5)); for (let k = 0; k <= n; k++) { const x = a[0] + (b[0] - a[0])*k/n, y = a[1] + (b[1] - a[1])*k/n, c = cellOf(x, y); if (!free(c[0], c[1])) return false; } return true; };
+  const findPath = (from, to) => {                                   // 公分座標 [x, y] → 路徑點陣列；找不到就直線走
+    if (!grid) grid = buildGrid();
+    const s = snap(...cellOf(from[0], from[1])), t = snap(...cellOf(to[0], to[1])), id = (i, j) => j*NX + i;
+    const gs = new Float32Array(NX*NY).fill(1e9), prev = new Int32Array(NX*NY).fill(-1), closed = new Uint8Array(NX*NY); gs[id(...s)] = 0;
+    const heap = [];                                                                        // 二元堆積（最小值在最前面）
+    const push = (f, n) => { heap.push([f, n]); let k = heap.length - 1; while (k > 0) { const p = (k - 1) >> 1; if (heap[p][0] <= heap[k][0]) break; [heap[p], heap[k]] = [heap[k], heap[p]]; k = p; } };
+    const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let k = 0; for (;;) { let l = 2*k + 1, r = l + 1, m = k; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === k) break; [heap[m], heap[k]] = [heap[k], heap[m]]; k = m; } } return top; };
+    const h = (i, j) => { const dx = Math.abs(i - t[0]), dy = Math.abs(j - t[1]); return (dx + dy) + (Math.SQRT2 - 2)*Math.min(dx, dy); };
+    push(0, id(...s)); let found = false;
+    while (heap.length) {
+      const [, cur] = pop(); if (closed[cur]) continue; closed[cur] = 1;
+      const ci = cur % NX, cj = (cur/NX) | 0;
+      if (ci === t[0] && cj === t[1]) { found = true; break; }
+      for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
+        if (!di && !dj) continue; const ni = ci + di, nj = cj + dj; if (!free(ni, nj)) continue;
+        if (di && dj && (!free(ci + di, cj) || !free(ci, cj + dj))) continue;           // 斜走不能切過牆角
+        const ng = gs[cur] + (di && dj ? Math.SQRT2 : 1), nid = id(ni, nj);
+        if (ng < gs[nid]) { gs[nid] = ng; prev[nid] = cur; push(ng + h(ni, nj), nid); }
+      }
+    }
+    if (!found) return [from, to];
+    const cells = []; for (let c = id(...t); c >= 0; c = prev[c]) cells.push([X0 + (c % NX + .5)*CELL, Y0 + (((c/NX) | 0) + .5)*CELL]); cells.reverse();
+    const pts = [from]; let a = from;                                                    // 把路拉直：從目前點一路往前看，看得到最遠的點就直接走過去
+    for (let k = 0; k < cells.length; ) { let far = k; for (let m = cells.length - 1; m > k; m--) if (los(a, cells[m])) { far = m; break; } pts.push(cells[far]); a = cells[far]; k = far + 1; }
+    pts.push(to); return pts;
+  };
+  const camYaw = (f, cam) => Math.atan2(cam.position.x - f.o.m.position.x, cam.position.z - f.o.m.position.z);
+  const turnTo = (f, to, dt, k = 9) => { let d = to - f.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); f.yaw += d*Math.min(1, dt*k); };
+  const setCtl = (f, walk, dt, speed) => { f.ph += walk ? speed*dt*7.8 : 0; f.o.ctl = { walk, ph:f.ph, yaw:f.yaw, bob: walk ? Math.abs(Math.sin(f.ph))*.03 : 0 }; };
+  const pointAt = (s) => {                                                              // 院長走過的路線上，距離起點 s 公尺處的位置與方向（s<0 時往起點後方延伸）
+    const r = host.route, seg = host.seg; let d = s, i = 0;
+    if (d <= 0) { const t = r[1].clone().sub(r[0]).normalize(); return { x: r[0].x + t.x*d, z: r[0].z + t.z*d, tx:t.x, tz:t.z }; }
+    while (i < seg.length - 1 && d > seg[i]) { d -= seg[i]; i++; }
+    const a = r[i], b = r[i+1], k = Math.min(1, d/seg[i]), t = b.clone().sub(a).normalize(); return { x: a.x + (b.x - a.x)*k, z: a.z + (b.z - a.z)*k, tx:t.x, tz:t.z };
+  };
+  crew.forEach(f => { f.yaw = 0; f.ph = Math.random()*6; f.pos = new THREE.Vector3(); f.path = null; f.pi = 0; });
+  if (willGreet) crew.forEach(f => { f.o.ctl = { walk:0, ph:0, yaw:0, bob:0 }; });
+  const trail = (f, L) => { const p = pointAt(L - f.gap); return { x: p.x - p.tz*f.lat, z: p.z + p.tx*f.lat, tx:p.tx, tz:p.tz }; };
+  return { crew, findPath, st, dbg: { grid: () => (grid || (grid = buildGrid())), cellOf, free, snap, CELL, X0, Y0, NX, NY }, step(now, dt, cam) {
+    if (st.phase === 'off' || st.phase === 'done') return;
+    const H = host;
+    if (st.phase === 'follow') {
+      const L = H.mode === 'wait' ? 0 : Math.min(H.dist, H.total0), walking = H.mode === 'walk';
+      crew.forEach(f => { const p = trail(f, L); f.o.m.position.set(p.x, 0, p.z); f.pos.set(p.x, 0, p.z); f.yaw = Math.atan2(p.tx, p.tz); setCtl(f, walking ? 1 : 0, dt, 1.9); });
+      if (H.mode === 'grow') { st.phase = 'grow'; crew.forEach(f => { f.from = f.pos.clone(); }); }
+    }
+    if (st.phase === 'grow') {
+      const k = Math.min(1, H.gt || 0), e = k*k*(3 - 2*k);
+      crew.forEach(f => { const to = V(f.slot[0], f.slot[1], 0), x = f.from.x + (to.x - f.from.x)*e, z = f.from.z + (to.z - f.from.z)*e;
+        f.o.m.position.set(x, 0, z); if (k < 1) f.yaw = Math.atan2(to.x - f.from.x, to.z - f.from.z); else turnTo(f, camYaw(f, cam), dt); setCtl(f, k < 1 ? 1 : 0, dt, 1.9); });
+      if (H.mode === 'wave') st.phase = 'front';
+    }
+    if (st.phase === 'front') {
+      crew.forEach(f => { turnTo(f, camYaw(f, cam), dt); setCtl(f, 0, dt, 0); });
+      if (now >= H.sayUntil) { st.phase = 'return'; st.t0 = now; crew.forEach((f, i) => { const p = f.o.m.position; f.path = findPath([p.x*100, 1500 - p.z*100], f.home); f.pi = 1; f.delay = i*.45; f.left = 0; }); }
+    }
+    if (st.phase === 'return') {
+      let alive = 0;
+      crew.forEach(f => {
+        if (f.done) return; alive++;
+        if ((now - st.t0)/1000 < f.delay) { turnTo(f, camYaw(f, cam), dt); setCtl(f, 0, dt, 0); return; }
+        const m = f.o.m.position; let x = m.x*100, y = 1500 - m.z*100, step = 1.7*dt*100;
+        while (step > 0 && f.pi < f.path.length) { const tx = f.path[f.pi][0], ty = f.path[f.pi][1], d = Math.hypot(tx - x, ty - y);
+          if (d <= step) { x = tx; y = ty; step -= d; f.pi++; } else { x += (tx - x)/d*step; y += (ty - y)/d*step; f.yaw = Math.atan2((tx - x)/d, -(ty - y)/d); step = 0; } }
+        m.set(x/100, stageY(x, y), (1500 - y)/100);
+        if (f.pi >= f.path.length) { f.done = true; f.o.yaw = f.yaw; f.o.ctl = null; return; }
+        setCtl(f, 1, dt, 1.7);
+      });
+      if (!alive) st.phase = 'done';
+    }
+  } };
 })();
 
 // 選取框
@@ -1258,7 +1375,7 @@ let last = performance.now();
   stepMove(Math.min(.1, raw));
   if (walkSt.on && !fly) { camera.position.y += (EYE - camera.position.y)*Math.min(1, raw*6); controls.target.copy(camera.position).add(fwdOf()); }
   if (!still) stepWalkers(dt, camera);
-  tvTick(now); host.update(now, still); host.step(now, Math.min(.3, raw), camera); vice.step(now, Math.min(.3, raw), camera); lecturer.step(now, Math.min(.3, raw), camera); chen.step(now, Math.min(.3, raw), camera); chung.step(now, Math.min(.3, raw), camera); li.step(now, Math.min(.3, raw), camera);
+  tvTick(now); host.update(now, still); host.step(now, Math.min(.3, raw), camera); intro.step(now, Math.min(.3, raw), camera); vice.step(now, Math.min(.3, raw), camera); lecturer.step(now, Math.min(.3, raw), camera); chen.step(now, Math.min(.3, raw), camera); chung.step(now, Math.min(.3, raw), camera); li.step(now, Math.min(.3, raw), camera);
 
   controls.update(); renderer.render(scene, camera); requestAnimationFrame(tick);
 })(last);
