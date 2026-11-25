@@ -1012,12 +1012,13 @@ const li = (() => {
 const intro = (() => {
   const A = { vice:vice, lecturer:lecturer, chen:chen, chung:chung, li:li };
   // 隨行者：gap 與 lat 是在院長後方的距離與左右位置（公尺）；slot 是到前方後站的位置（公分，院長在 390,-24）；home 是回去的定位點（公分）
+  // 站位排成左 2 右 3 的弧形，每個人離院長左右至少 0.9 公尺，從鏡頭看不會被院長擋住
   const crew = [
-    { o:A.chen,     gap:1.2, lat:-.6, slot:[270, 34],  home:[-75, 770] },
-    { o:A.vice,     gap:1.2, lat: .6, slot:[345, 82],  home:[760, 545] },
-    { o:A.li,       gap:2.4, lat:-.6, slot:[435, 82],  home:[450, 1105] },
-    { o:A.chung,    gap:2.4, lat: .6, slot:[510, 34],  home:[1215, 1350] },
-    { o:A.lecturer, gap:3.6, lat: 0,  slot:[585, -8],  home:[2050, 345] },
+    { o:A.chen,     gap:1.2, lat:-.6, slot:[220, 26],  home:[-75, 770] },
+    { o:A.vice,     gap:1.2, lat: .6, slot:[295, 74],  home:[760, 545] },
+    { o:A.li,       gap:2.4, lat:-.6, slot:[485, 74],  home:[450, 1105] },
+    { o:A.chung,    gap:2.4, lat: .6, slot:[560, 26],  home:[1215, 1350] },
+    { o:A.lecturer, gap:3.6, lat: 0,  slot:[635, -4],  home:[2050, 345] },
   ];
   const st = { phase: willGreet ? 'follow' : 'off', t0:0 };
   const stageY = (xc, yc) => { const dx = (xc - 2250)/420, dy = (yc - 330)/134; return dx*dx + dy*dy <= 1 ? .3 : 0; };   // 在大舞台範圍內要踩上 30 公分高的台面
@@ -1437,7 +1438,7 @@ addEventListener('pageshow', e => { if (e.persisted) location.reload(); });   //
 setView(willGreet ? 'all' : 'hualien', true);                 // 開場先看全景，停 1 秒後鏡頭切到花蓮展區，院長才走出來
 if (willGreet) setTimeout(() => {
   if (document.getElementById('sheet').classList.contains('open')) return;
-  if (camera.aspect < 1) { flyTo([7.4, 3.5, 25.8], [4.3, 1.5, 14.8], 1500); document.querySelectorAll('.views [data-view]').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === 'hualien')); }   // 手機：鏡頭直接拉近到前方，院長和主管們看起來大一點
+  if (camera.aspect < 1) { flyTo([4.9, 3.6, 29.2], [4.3, 1.5, 14.8], 1500); document.querySelectorAll('.views [data-view]').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === 'hualien')); }   // 手機：鏡頭直接拉近到前方，院長和主管們看起來大一點
   else setView('hualien');
 }, 1000);
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
