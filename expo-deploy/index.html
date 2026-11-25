@@ -138,7 +138,7 @@
   body.walking #zIn,body.walking #zOut{display:none}
   @media (min-width:860px){.joy{left:calc(80px + env(safe-area-inset-left))}}   /* 電腦版搖桿再往右一點，離螢幕邊緣遠一些 */
   .tm{display:flex;position:fixed;z-index:5;left:calc(220px + env(safe-area-inset-left));bottom:calc(18px + env(safe-area-inset-bottom));gap:8px}   /* 「‹」＋「下一區 ›」：電腦版放在搖桿右邊，和手機一樣只有這一組按鈕 */
-  @media (min-width:860px){.dock{display:none}}   /* 電腦版不再顯示整排區域按鈕 */
+  .dock{display:none}   /* 桌機與手機都不再顯示整排區域按鈕，只留「下一區」 */
   @media (max-width:859px){
     .dock{left:0;right:0;transform:none;max-width:none;top:132px;bottom:auto;padding:0 12px;pointer-events:none}
     .dock .rb{display:none}.chips2{pointer-events:auto}
@@ -1436,7 +1436,11 @@ function resize() { const w = innerWidth, h = innerHeight; if (w < 1 || h < 1) r
 addEventListener('resize', resize); resize();
 addEventListener('pageshow', e => { if (e.persisted) location.reload(); });   // 手機瀏覽器按上一頁／從快取還原時也重新載入，讓院長重新走一遍
 setView(willGreet ? 'all' : 'hualien', true);                 // 開場先看全景，停 1 秒後鏡頭切到花蓮展區，院長才走出來
-if (willGreet) setTimeout(() => { if (!document.getElementById('sheet').classList.contains('open')) setView('hualien'); }, 1000);
+if (willGreet) setTimeout(() => {
+  if (document.getElementById('sheet').classList.contains('open')) return;
+  if (camera.aspect < 1) { flyTo([7.4, 3.5, 25.8], [4.3, 1.5, 14.8], 1500); document.querySelectorAll('.views [data-view]').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === 'hualien')); }   // 手機：鏡頭直接拉近到前方，院長和主管們看起來大一點
+  else setView('hualien');
+}, 1000);
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let last = performance.now();
 (function tick(now) {
