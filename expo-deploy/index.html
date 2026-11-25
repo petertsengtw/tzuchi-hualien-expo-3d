@@ -1272,7 +1272,7 @@ function select(id) {
   exitWalk();
   const it = items[id]; if (!it) return;
   if (it.kind === 'guide') { it.run(); return; }   // 點副院長：開始導覽，不開資訊卡
-  current = id; document.body.classList.add('sheetopen'); drawer.classList.remove('open'); $('hint').classList.add('off');
+  current = id; document.body.classList.add('sheetopen'); drawer.classList.remove('open'); hideGuide();
   $('sCode').textContent = it.label || it.id; $('sCode').className = 'code' + (it.kind === 'poster' || it.kind === 'spot' ? '' : ' z');
   $('sTitle').textContent = it.title; $('sWhere').textContent = it.where;
   let h = '';
@@ -1480,9 +1480,14 @@ let last = performance.now();
 {
   const KEY = 'expo-guide-seen-v1'; let seen = false; try { seen = localStorage.getItem(KEY) === '1'; } catch (e) {}
   if (seen || willGreet) $('hint').classList.add('off');
-  window.showGuide = () => { if (!seen) { seen = true; $('hint').classList.remove('off'); } };
-  $('gOk').onclick = () => { $('hint').classList.add('off'); try { localStorage.setItem(KEY, '1'); } catch (e) {} };
-  $('bHelp').onclick = () => { closeSheet(); $('hint').classList.toggle('off'); };
+  let guideAt = 0, guideT = 0;   // 使用說明出現後至少停留 6 秒：期間若點了海報，等滿 6 秒才收起
+  window.showGuide = () => { if (!seen) { seen = true; guideAt = performance.now(); $('hint').classList.remove('off'); } };
+  window.hideGuide = () => {
+    const left = guideAt + 6000 - performance.now(); clearTimeout(guideT);
+    if (left > 0) guideT = setTimeout(() => $('hint').classList.add('off'), left); else $('hint').classList.add('off');
+  };
+  $('gOk').onclick = () => { clearTimeout(guideT); $('hint').classList.add('off'); try { localStorage.setItem(KEY, '1'); } catch (e) {} };
+  $('bHelp').onclick = () => { closeSheet(); clearTimeout(guideT); guideAt = 0; $('hint').classList.toggle('off'); };
 }
 </script>
 </body>
