@@ -556,9 +556,51 @@ function fitPoster(m, r) {
   if (r > W/H) fh = W/r; else fw = H*r;
   m.scale.set(fw/W, fh/H, 1);
 }
+// 海報圖上標示「43"TV」「65"TV」的色塊，現場其實是電視：在那個位置畫一台電視（黑框＋深色玻璃螢幕＋反光）蓋在圖上。
+// 位置用圖片的比例座標 [左, 上, 右, 下]（0～1）。可在 content.js 用 window.TV_AREAS 覆寫；寫 window.TV_AREAS = {}; 就全部不畫。
+const TV_AREAS = window.TV_AREAS || { A01: [.199, .188, .577, .399], A43: [.346, .202, .605, .73] };
+// 螢幕播放內容：預設輪播展區的主視覺與品牌圖（實際電視播什麼就改成什麼）；可用 window.TV_SLIDES = ['posters/A42.jpg', ...] 覆寫
+const TV_SLIDES = window.TV_SLIDES || ['posters/A42.jpg', 'posters/A45-1.jpg', 'assets/t_banner.jpg'];
+const tvList = [], tvTex = [];
+function tvCover(t, aspect) {   // 以「填滿裁切」方式貼到 16:9 螢幕：圖比螢幕寬就裁左右，比較窄就裁上下
+  const ia = t.image.width/t.image.height; t.repeat.set(1, 1); t.offset.set(0, 0);
+  if (ia > aspect) { t.repeat.x = aspect/ia; t.offset.x = (1 - t.repeat.x)/2; } else { t.repeat.y = ia/aspect; t.offset.y = (1 - t.repeat.y)/2; }
+}
+TV_SLIDES.forEach(u => new THREE.TextureLoader().load(u, t => { t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; tvTex.push(t); tvList.forEach(v => v.refresh()); }, undefined, () => {}));
+function tvTick(now) {
+  tvList.forEach(v => {
+    if (tvTex.length < 1) return;
+    const k = ((now - v.t0)/1000) / 6;                      // 每張 6 秒，最後 1 秒淡出淡入
+    const i = Math.floor(k) % tvTex.length, f = Math.min(1, Math.max(0, ((k % 1) - 5/6)*6)), j = (i + 1) % tvTex.length;
+    if (v.i !== i) { v.i = i; v.a.material.map = tvTex[i]; tvCover(tvTex[i], v.asp); v.a.material.needsUpdate = true; }
+    if (v.j !== j) { v.j = j; v.b.material.map = tvTex[j]; tvCover(tvTex[j], v.asp); v.b.material.needsUpdate = true; }
+    v.b.material.opacity = tvTex.length > 1 ? f : 0;
+  });
+}
+let tvGlare = null, tvStripe = null;
+function addTV(m, area) {
+  if (m.userData.tv) return; m.userData.tv = true;
+  const g = m.geometry.parameters, W = g.width, H = g.height, [x0, y0, x1, y1] = area;
+  const cx = (x0 + x1)/2, cy = (y0 + y1)/2, w = (x1 - x0)*W, h = (y1 - y0)*H, bw = Math.min(w, h)*.045;   // bw：邊框寬度
+  const px = (cx - .5)*W, py = (.5 - cy)*H, D = .035;                                                       // D：電視厚度（公尺）
+  if (!tvGlare) tvGlare = canvasTex(256, 144, (c, cw, ch) => {
+    const gr = c.createLinearGradient(0, 0, cw, ch*.9); gr.addColorStop(0, 'rgba(255,255,255,.28)'); gr.addColorStop(.38, 'rgba(255,255,255,.07)'); gr.addColorStop(.42, 'rgba(255,255,255,0)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = gr; c.fillRect(0, 0, cw, ch); });
+  const root = new THREE.Group(); root.position.set(px, py, 0); m.add(root);
+  const body = new THREE.Mesh(new THREE.BoxGeometry(w + bw*2, h + bw*2.8, D), [0x15181e, 0x15181e, 0x15181e, 0x15181e, 0x0b0d11, 0x0b0d11].map(c => new THREE.MeshBasicMaterial({ color:c })));
+  body.position.z = D/2 + .004; root.add(body);                                                              // 機身（有厚度，側面稍亮）
+  const mk = (z, opts) => { const o = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial(opts)); o.position.z = D + .006 + z; root.add(o); return o; };
+  const a = mk(0, { color:0xe9eef5 }), b = mk(.0006, { color:0xe9eef5, transparent:true, opacity:0, depthWrite:false });   // 螢幕：兩層做淡入淡出
+  const glare = mk(.0012, { map:tvGlare, transparent:true, depthWrite:false });                              // 玻璃反光
+  const led = new THREE.Mesh(new THREE.CircleGeometry(bw*.16, 12), new THREE.MeshBasicMaterial({ color:0x4aa3ff })); led.position.set(w*.5 - bw*.4, -h*.5 - bw*1.9, D + .007); root.add(led);
+  const logo = new THREE.Mesh(new THREE.PlaneGeometry(w*.07, bw*.55), new THREE.MeshBasicMaterial({ color:0x6b7380 })); logo.position.set(0, -h*.5 - bw*1.9, D + .007); root.add(logo);   // 下緣的小廠牌
+  root.traverse(o => { o.raycast = () => {}; });                                                             // 不擋住點選
+  const v = { a, b, asp: w/h, t0: performance.now() + Math.random()*4000, i:-1, j:-1, refresh() { this.i = this.j = -1; } };
+  tvList.push(v);
+}
 function setPoster(id, src) {
   const m = posterMesh[id]; if (!m) return; const im = new Image();
-  im.onload = () => { fitPoster(m, im.naturalWidth/im.naturalHeight); const t = new THREE.Texture(im); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; t.needsUpdate = true; m.material.map = t; m.material.needsUpdate = true; items[id].img = src; if (current === id) select(id); };
+  im.onload = () => { fitPoster(m, im.naturalWidth/im.naturalHeight); if (TV_AREAS[id]) addTV(m, TV_AREAS[id]); const t = new THREE.Texture(im); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; t.needsUpdate = true; m.material.map = t; m.material.needsUpdate = true; items[id].img = src; if (current === id) select(id); };
   im.src = src;
 }
 function loadPosters() {
@@ -1216,7 +1258,7 @@ let last = performance.now();
   stepMove(Math.min(.1, raw));
   if (walkSt.on && !fly) { camera.position.y += (EYE - camera.position.y)*Math.min(1, raw*6); controls.target.copy(camera.position).add(fwdOf()); }
   if (!still) stepWalkers(dt, camera);
-  host.update(now, still); host.step(now, Math.min(.3, raw), camera); vice.step(now, Math.min(.3, raw), camera); lecturer.step(now, Math.min(.3, raw), camera); chen.step(now, Math.min(.3, raw), camera); chung.step(now, Math.min(.3, raw), camera); li.step(now, Math.min(.3, raw), camera);
+  tvTick(now); host.update(now, still); host.step(now, Math.min(.3, raw), camera); vice.step(now, Math.min(.3, raw), camera); lecturer.step(now, Math.min(.3, raw), camera); chen.step(now, Math.min(.3, raw), camera); chung.step(now, Math.min(.3, raw), camera); li.step(now, Math.min(.3, raw), camera);
 
   controls.update(); renderer.render(scene, camera); requestAnimationFrame(tick);
 })(last);
