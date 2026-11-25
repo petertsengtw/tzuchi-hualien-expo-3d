@@ -564,6 +564,9 @@ function posterTex(id, unit, pw) {
   lines.forEach((l, i) => g.fillText(l, X, 275 + (i - (lines.length-1)/2)*s*1.15));
   const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
 }
+// 「☰ 清單」點單位時要跳到哪一張海報：預設是該單位的第一個編號；這裡指定的單位改跳到指定的編號（秧悅 → A02，因為 A01 是電視版面）。
+// 可在 content.js 用 window.UNIT_ENTRY = { '單位名稱': 'A編號' } 新增或覆寫。
+const UNIT_ENTRY = Object.assign({ '秧悦': 'A02' }, window.UNIT_ENTRY || {});
 // 資訊卡內容：合併組可以把文字填在組內任一個編號，取第一個有填的；沒有就取點選的那個編號
 function pickContent(it, id) {
   const C = window.CONTENT || {}, has = c => c && (c.title || c.text || c.video);
@@ -872,7 +875,7 @@ const vice = (() => {
   items['導覽'] = it_; proxy.userData.it = it_; it_.mesh = proxy; pick.push(proxy);
   o.step = (now, dt, cam) => {
     if (!rig.ready) return;
-    if (o.ctl) { o.wt += dt; o.yaw = o.ctl.yaw; m.rotation.y = o.yaw; m.position.y = o.ctl.bob; rig.pose(o.ctl.walk, o.ctl.ph, 0, o.wt, 0, -1, 0); return; }   // 開場「跟著院長走到前方、再走回定位」時，由 intro 控制位置與走路動作
+    if (o.ctl) { o.wt += dt; o.yaw = o.ctl.yaw; m.rotation.y = o.yaw; m.position.y = o.ctl.bob; rig.pose(o.ctl.walk, o.ctl.ph, 0, o.wt, o.ctl.pitch || 0, -1, 0); return; }   // 開場「跟著院長走到前方、再走回定位」時，由 intro 控制位置與走路動作
     o.wt += dt;
     const speaking = now < o.sayUntil; o.up += ((speaking ? 1 : 0) - o.up)*Math.min(1, dt*5);   // 說話時舉手
     const dx = cam.position.x - g.position.x, dz = cam.position.z - g.position.z, hd = Math.max(1, Math.hypot(dx, dz)), d = Math.atan2(dx, dz);
@@ -900,7 +903,7 @@ const lecturer = (() => {
   items['講課'] = it_; proxy.userData.it = it_; it_.mesh = proxy; pick.push(proxy);
   o.step = (now, dt, cam) => {
     if (!rig.ready) return;
-    if (o.ctl) { o.wt += dt; o.yaw = o.ctl.yaw; m.rotation.y = o.yaw; m.position.y = o.ctl.bob; rig.pose(o.ctl.walk, o.ctl.ph, 0, o.wt, 0, 1, 0); return; }   // 開場「跟著院長走到前方、再走回定位」時，由 intro 控制位置與走路動作
+    if (o.ctl) { o.wt += dt; o.yaw = o.ctl.yaw; m.rotation.y = o.yaw; m.position.y = o.ctl.bob; rig.pose(o.ctl.walk, o.ctl.ph, 0, o.wt, o.ctl.pitch || 0, 1, 0); return; }   // 開場「跟著院長走到前方、再走回定位」時，由 intro 控制位置與走路動作
     o.wt += dt;
     let walk = 0, vx = 0;
     if (o.mode === 'stand') { if (o.wt > o.next) { o.mode = 'walk'; let t; do { t = 1990 + Math.random()*330; } while (Math.abs(t - g.position.x*100) < 60); o.tx = t; } }   // 偶爾走到舞台左半邊的另一個位置
@@ -933,7 +936,7 @@ const chen = (() => {
   items['迎賓'] = it_; proxy.userData.it = it_; it_.mesh = proxy; pick.push(proxy);
   o.step = (now, dt, cam) => {
     if (!rig.ready) return;
-    if (o.ctl) { o.wt += dt; o.yaw = o.ctl.yaw; m.rotation.y = o.yaw; m.position.y = o.ctl.bob; rig.pose(o.ctl.walk, o.ctl.ph, 0, o.wt, 0, 1, 0); return; }   // 開場「跟著院長走到前方、再走回定位」時，由 intro 控制位置與走路動作
+    if (o.ctl) { o.wt += dt; o.yaw = o.ctl.yaw; m.rotation.y = o.yaw; m.position.y = o.ctl.bob; rig.pose(o.ctl.walk, o.ctl.ph, 0, o.wt, o.ctl.pitch || 0, 1, 0); return; }   // 開場「跟著院長走到前方、再走回定位」時，由 intro 控制位置與走路動作
     o.wt += dt;
     const dx = cam.position.x - g.position.x, dz = cam.position.z - g.position.z, hd = Math.max(1, Math.hypot(dx, dz));
     if (!o.greeted && hd < 11 && !document.body.classList.contains('sheetopen')) { o.greeted = true; hello(5000); }   // 走近時說一次歡迎詞
@@ -962,7 +965,7 @@ const chung = (() => {
   items['護理導覽'] = it_; proxy.userData.it = it_; it_.mesh = proxy; pick.push(proxy);
   o.step = (now, dt, cam) => {
     if (!rig.ready) return;
-    if (o.ctl) { o.wt += dt; o.yaw = o.ctl.yaw; m.rotation.y = o.yaw; m.position.y = o.ctl.bob; rig.pose(o.ctl.walk, o.ctl.ph, 0, o.wt, 0, 1, 0); return; }   // 開場「跟著院長走到前方、再走回定位」時，由 intro 控制位置與走路動作
+    if (o.ctl) { o.wt += dt; o.yaw = o.ctl.yaw; m.rotation.y = o.yaw; m.position.y = o.ctl.bob; rig.pose(o.ctl.walk, o.ctl.ph, 0, o.wt, o.ctl.pitch || 0, 1, 0); return; }   // 開場「跟著院長走到前方、再走回定位」時，由 intro 控制位置與走路動作
     o.wt += dt;
     const dx = cam.position.x - g.position.x, dz = cam.position.z - g.position.z, hd = Math.max(1, Math.hypot(dx, dz)), d = Math.atan2(dx, dz);
     o.yaw += Math.atan2(Math.sin(d - o.yaw), Math.cos(d - o.yaw))*Math.min(1, dt*8); m.rotation.y = o.yaw;
@@ -989,7 +992,7 @@ const li = (() => {
   items['國醫導覽'] = it_; proxy.userData.it = it_; it_.mesh = proxy; pick.push(proxy);
   o.step = (now, dt, cam) => {
     if (!rig.ready) return;
-    if (o.ctl) { o.wt += dt; o.yaw = o.ctl.yaw; m.rotation.y = o.yaw; m.position.y = o.ctl.bob; rig.pose(o.ctl.walk, o.ctl.ph, 0, o.wt, 0, 1, 0); return; }   // 開場「跟著院長走到前方、再走回定位」時，由 intro 控制位置與走路動作
+    if (o.ctl) { o.wt += dt; o.yaw = o.ctl.yaw; m.rotation.y = o.yaw; m.position.y = o.ctl.bob; rig.pose(o.ctl.walk, o.ctl.ph, 0, o.wt, o.ctl.pitch || 0, 1, 0); return; }   // 開場「跟著院長走到前方、再走回定位」時，由 intro 控制位置與走路動作
     o.wt += dt; let walk = 0, vx = 0;
     if (o.mode === 'stand') { if (o.wt > o.next) { o.mode = 'walk'; let t; do { t = X0 + Math.random()*(X1 - X0); } while (Math.abs(t - g.position.x*100) < 50); o.tx = t; } }   // 偶爾走到 A14、A15 前面的另一個位置
     else { const cx = g.position.x*100, dd = o.tx - cx, st = Math.min(Math.abs(dd), .6*dt*100);
@@ -1072,7 +1075,13 @@ const intro = (() => {
   };
   const camYaw = (f, cam) => Math.atan2(cam.position.x - f.o.m.position.x, cam.position.z - f.o.m.position.z);
   const turnTo = (f, to, dt, k = 9) => { let d = to - f.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); f.yaw += d*Math.min(1, dt*k); };
-  const setCtl = (f, walk, dt, speed) => { f.ph += walk ? speed*dt*7.8 : 0; f.o.ctl = { walk, ph:f.ph, yaw:f.yaw, bob: walk ? Math.abs(Math.sin(f.ph))*.03 : 0 }; };
+  const setCtl = (f, walk, dt, speed) => {
+    f.ph += walk ? speed*dt*7.8 : 0;
+    const p = f.o.m.position, hd = Math.max(1, Math.hypot(camera.position.x - p.x, camera.position.z - p.z));
+    const tp = walk ? 0 : Math.min(.5, Math.max(0, Math.atan2(camera.position.y - (p.y + 1.9), hd)*1.4));   // 站定時和院長一樣，頭依鏡頭高度往上仰；走路時平視
+    f.pitch = (f.pitch || 0) + (tp - (f.pitch || 0))*Math.min(1, dt*6);
+    f.o.ctl = { walk, ph:f.ph, yaw:f.yaw, pitch:f.pitch, bob: walk ? Math.abs(Math.sin(f.ph))*.03 : 0 };
+  };
   const pointAt = (s) => {                                                              // 院長走過的路線上，距離起點 s 公尺處的位置與方向（s<0 時往起點後方延伸）
     const r = host.route, seg = host.seg; let d = s, i = 0;
     if (d <= 0) { const t = r[1].clone().sub(r[0]).normalize(); return { x: r[0].x + t.x*d, z: r[0].z + t.z*d, tx:t.x, tz:t.z }; }
@@ -1109,7 +1118,7 @@ const intro = (() => {
         while (step > 0 && f.pi < f.path.length) { const tx = f.path[f.pi][0], ty = f.path[f.pi][1], d = Math.hypot(tx - x, ty - y);
           if (d <= step) { x = tx; y = ty; step -= d; f.pi++; } else { x += (tx - x)/d*step; y += (ty - y)/d*step; f.yaw = Math.atan2((tx - x)/d, -(ty - y)/d); step = 0; } }
         m.set(x/100, stageY(x, y), (1500 - y)/100);
-        if (f.pi >= f.path.length) { f.done = true; f.o.yaw = f.yaw; f.o.ctl = null; return; }
+        if (f.pi >= f.path.length) { f.done = true; f.o.yaw = f.yaw; f.o.pitch = f.pitch || 0; f.o.ctl = null; return; }
         setCtl(f, 1, dt, 1.7);
       });
       if (!alive) st.phase = 'done';
@@ -1294,7 +1303,7 @@ $('bClose').onclick = () => drawer.classList.remove('open');
 {
   const units = {}; POSTERS.forEach(p => { (units[p[1] || '待確認'] = units[p[1] || '待確認'] || []).push(p[0]); });
   let h = '<h3>功能區</h3>' + ZONES.map(z => `<button class="row" data-go="${z[0]}"><span class="tag z">${z[0]}</span><span class="nm">${z[1]}</span></button>`).join('');
-  h += '<h3>展出單位</h3>' + Object.keys(units).map(u => `<button class="row" data-go="${units[u][0]}"><span class="tag">${units[u].length}</span><span class="nm">${u}</span><span class="sub">${units[u][0]}${units[u].length > 1 ? '–' + units[u][units[u].length-1].replace('A', '') : ''}</span></button>`).join('');
+  h += '<h3>展出單位</h3>' + Object.keys(units).map(u => `<button class="row" data-go="${UNIT_ENTRY[u] || units[u][0]}"><span class="tag">${units[u].length}</span><span class="nm">${u}</span><span class="sub">${units[u][0]}${units[u].length > 1 ? '–' + units[u][units[u].length-1].replace('A', '') : ''}</span></button>`).join('');
   h += '<h3>主視覺與牆面</h3>' + ['A42','A43','A44','A45','A46'].map(i => `<button class="row" data-go="${i}"><span class="tag">${i.replace('A', '')}</span><span class="nm">${items[i].title}</span></button>`).join('');
   $('list').innerHTML = h; $('list').onclick = e => { const b = e.target.closest('[data-go]'); if (b) select(b.dataset.go); };
 }
