@@ -1479,9 +1479,10 @@ let last = performance.now();
 })(last);
 {
   const KEY = 'expo-guide-seen-v1'; let seen = false; try { seen = localStorage.getItem(KEY) === '1'; } catch (e) {}
-  if (seen || willGreet) $('hint').classList.add('off');
   let guideAt = 0, guideT = 0;   // 使用說明出現後至少停留 6 秒：期間若點了海報，等滿 6 秒才收起
-  window.showGuide = () => { if (!seen) { seen = true; guideAt = performance.now(); $('hint').classList.remove('off'); } };
+  window.showGuide = () => {};
+  if (seen) $('hint').classList.add('off');
+  else { guideAt = performance.now(); guideT = setTimeout(() => $('hint').classList.add('off'), 6000); }   // 載入時就顯示說明，停 6 秒後自動收起（院長走完後不再重複彈出）
   window.hideGuide = () => {
     const left = guideAt + 6000 - performance.now(); clearTimeout(guideT);
     if (left > 0) guideT = setTimeout(() => $('hint').classList.add('off'), left); else $('hint').classList.add('off');
