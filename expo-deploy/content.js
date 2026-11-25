@@ -2,6 +2,9 @@
 // title：資訊卡的大標題（留空就顯示單位名稱）
 // text ：介紹文字，換段落請用 \n
 // video：影片檔名（檔案放在 posters 資料夾，例如 "A01.mp4"）
+// 合併海報組：廠商的一張大圖貼在相鄰攤位時，把編號列在這裡（圖檔與文字都用第一個編號，例如 A02.jpg、"A02"）。
+// 不寫這一行時，預設合併 A02–A03、A37–A38；寫成 window.MERGE = []; 就全部不合併。
+window.MERGE = [["A02", "A03"], ["A37", "A38"]];
 window.CONTENT = {
   "A01": { title: "", text: "", video: "" },   // 秧悦
   "A02": { title: "", text: "", video: "" },   // 秧悦
@@ -48,4 +51,4 @@ window.CONTENT = {
   "A41": { title: "", text: "", video: "" },   // 中醫部
   "A44": { title: "", text: "", video: "" },   // 單位待確認
 };
-window.POSTER_FILES = ["A01.jpg", "A02.jpg", "A06.jpg", "A07.jpg", "A08.jpg", "A09.jpg", "A11.jpg", "A12.jpg", "A13.jpg", "A14.jpg", "A16.jpg", "A17.jpg", "A22.jpg", "A24.jpg", "A25.jpg", "A26.jpg", "A29.jpg", "A31.jpg", "A41.jpg", "A42.jpg", "A43.jpg"];   // 由 update_poster_list.py 自動產生，請勿手改
+window.POSTER_FILES = ["A01.jpg", "A02.jpg", "A06.jpg", "A07.jpg", "A08.jpg", "A09.jpg", "A11.jpg", "A12.jpg", "A13.jpg", "A14.jpg", "A16.jpg", "A17.jpg", "A22.jpg", "A24.jpg", "A25.jpg", "A26.jpg", "A29.jpg", "A31.jpg", "A37.jpg", "A41.jpg", "A42.jpg", "A43.jpg"];   // 由 update_poster_list.py 自動產生，請勿手改

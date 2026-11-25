@@ -562,8 +562,8 @@ function loadPosters() {
 }
 // 合併海報組：廠商的一張大圖貼在相鄰的幾個攤位時，在 content.js 用 window.MERGE = [["A02","A03"]] 設定。
 // 畫面上畫成一張寬海報，點其中任何一個編號都開同一張資訊卡；圖檔、文字都用第一個編號（例如 A02.jpg、"A02"）。
-// content.js 沒有寫 MERGE 時，預設合併 A02、A03；寫 window.MERGE = [] 就全部不合併。
-const MERGE = Array.isArray(window.MERGE) ? window.MERGE : [['A02', 'A03']];
+// content.js 沒有寫 MERGE 時，預設合併 A02–A03、A37–A38；寫 window.MERGE = [] 就全部不合併。
+const MERGE = Array.isArray(window.MERGE) ? window.MERGE : [['A02', 'A03'], ['A37', 'A38']];
 const mergedSkip = new Set();                       // 被併進前一張的編號（不另外畫海報）
 MERGE.forEach(g => {
   const rows = g.map(id => POSTERS.find(p => p[0] === id)); if (rows.length < 2 || rows.some(r => !r)) return;   // 編號不存在就不合併

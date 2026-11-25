@@ -3,8 +3,8 @@
 // text ：介紹文字，換段落請用 \n
 // video：影片檔名（檔案放在 posters 資料夾，例如 "A01.mp4"）
 // 合併海報組：廠商的一張大圖貼在相鄰攤位時，把編號列在這裡（圖檔與文字都用第一個編號，例如 A02.jpg、"A02"）。
-// 不寫這一行時，預設合併 A02、A03；寫成 window.MERGE = []; 就全部不合併。
-window.MERGE = [["A02", "A03"]];
+// 不寫這一行時，預設合併 A02–A03、A37–A38；寫成 window.MERGE = []; 就全部不合併。
+window.MERGE = [["A02", "A03"], ["A37", "A38"]];
 window.CONTENT = {
   "A01": { title: "", text: "", video: "" },   // 秧悦
   "A02": { title: "", text: "", video: "" },   // 秧悦
