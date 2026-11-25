@@ -1207,13 +1207,13 @@ function posterView(m, n, g, wide, tall) {
   }
   return null;
 }
-function frontView(t, n, dMax, h = 2.0) {   // 找一個站在牆正前方、離牆盡量遠、又看得到牆面的鏡頭位置
+function frontView(t, n, dMax, h = 2.0, sh = 0, dy = 0) {   // 找一個站在牆正前方、離牆盡量遠、又看得到牆面的鏡頭位置
   const T = new THREE.Vector3(...t), rc = new THREE.Raycaster(), lat = new THREE.Vector3(-n[1], 0, n[0]);
   for (let d = dMax; d >= 2.4; d -= .3) {
     const p = new THREE.Vector3(T.x + n[0]*d, h, T.z + n[1]*d); if (!clearAt(p.x, p.z)) continue;
     let ok = true;
     for (const off of [0, -1.3, 1.3]) { const q = T.clone().addScaledVector(lat, off), dir = q.clone().sub(p), L = dir.length(); rc.set(p, dir.normalize()); rc.far = L - .15; if (rc.intersectObjects(solids, false).length) { ok = false; break; } }
-    if (ok) return { pos:p, tgt:T };
+    if (ok) { const v = T.clone().sub(p).setY(0).normalize(), right = new THREE.Vector3(-v.z, 0, v.x), tg = T.clone().addScaledVector(right, sh); tg.y -= dy; return { pos:p.addScaledVector(right, sh), tgt:tg }; }
   }
   return { pos:new THREE.Vector3(T.x + n[0]*2.6, h, T.z + n[1]*2.6), tgt:T };
 }
@@ -1298,8 +1298,9 @@ function select(id) {
     host.say(3500); frame.visible = false; const c = V(it.x, it.y, 1);
     flyTo([c.x + (wide ? 2 : .4), 2.0, c.z + 6.6], [c.x + (wide ? 1.4 : 0), wide ? 1.3 : .6, c.z]);
   } else if (it.kind === 'zone') {
-    frame.visible = false; const c = V(it.x, it.y, 1);
-    flyTo([c.x + 1.5, 8.5, c.z + 9], [c.x + (wide ? 1.5 : 0), 1, c.z + (wide ? 0 : 1.2)]);
+    frame.visible = false; const c = V(it.x, it.y, 1), zv = ZONE_VIEW[it.id];
+    if (zv) { const k = Math.max(1, .9/camera.aspect), v = frontView(zv.t, zv.n, zv.d*Math.min(1.5, k), 2.0, wide ? 1.3 : 0, camera.aspect < 1 ? .6 : 0); flyTo(v.pos.toArray(), v.tgt.toArray(), 1100, 58); }   // 從清單或畫面上的區域標籤點選：和「下一區」一樣站到海報牆正前方平視（資訊卡開著，所以往旁邊讓出位置）
+    else flyTo([c.x + 1.5, 8.5, c.z + 9], [c.x + (wide ? 1.5 : 0), 1, c.z + (wide ? 0 : 1.2)]);
   } else {
     const m = it.mesh, n = new THREE.Vector3(0, 0, 1).applyQuaternion(m.quaternion);
     const g = { width: m.geometry.parameters.width*m.scale.x, height: m.geometry.parameters.height*m.scale.y }; frame.scale.set(g.width + .14, g.height + .14, 1);   // 依目前實際顯示大小（海報可能被依圖片比例縮小）
