@@ -550,15 +550,28 @@ function setPoster(id, src) {
   im.src = src;
 }
 function loadPosters() {
-  const use = names => names.forEach(n => { const k = /^(A[\d-]+)\.(jpe?g|png|webp)$/i.exec(decodeURIComponent(n)); if (k) setPoster(k[1].toUpperCase(), 'posters/' + n); });
+  const use = names => names.forEach(n => { const k = /^(A\d+(?:-\d+)?)(?:-A\d+(?:-\d+)?)?\.(jpe?g|png|webp)$/i.exec(decodeURIComponent(n)); if (k) setPoster(k[1].toUpperCase(), 'posters/' + n); });   // 檔名：A02.jpg，或 A02-A03.jpg（合併組也可以寫成「首-尾」）
   if (Array.isArray(window.POSTER_FILES)) return use(window.POSTER_FILES);                 // 部署到不提供目錄清單的主機時，改在 content.js 列出檔名
   fetch('posters/').then(r => r.ok ? r.text() : '').then(html => use([...html.matchAll(/href="([^"?\/]+)"/g)].map(k => k[1]))).catch(() => {});
 }
-POSTERS.forEach(([id, unit, x, y, face, w, pw]) => {
-  const m = plane(pw || .9, 1.25, new THREE.MeshBasicMaterial({ map: posterTex(id, unit, pw) }), x, y, 1.58, face, .075);
-  register(m, { id, kind:'poster', unit, title: unit || '單位待確認', x, y, face, wall:w,
-    where: `${WALL_NAME[w]}・${FACE_NAME[face]}`, shots: WALL_SHOTS[w] || [] });
-  posterMesh[id] = m;
+// 合併海報組：廠商的一張大圖貼在相鄰的幾個攤位時，在 content.js 用 window.MERGE = [["A02","A03"]] 設定。
+// 畫面上畫成一張寬海報，點其中任何一個編號都開同一張資訊卡；圖檔、文字都用第一個編號（例如 A02.jpg、"A02"）。
+// content.js 沒有寫 MERGE 時，預設合併 A02、A03；寫 window.MERGE = [] 就全部不合併。
+const MERGE = Array.isArray(window.MERGE) ? window.MERGE : [['A02', 'A03']];
+const mergedSkip = new Set();                       // 被併進前一張的編號（不另外畫海報）
+MERGE.forEach(g => {
+  const rows = g.map(id => POSTERS.find(p => p[0] === id)); if (rows.length < 2 || rows.some(r => !r)) return;   // 編號不存在就不合併
+  const f = rows[0]; if (rows.some(r => r[4] !== f[4] || r[5] !== f[5])) return;                                  // 必須同一面、同一道牆
+  f.group = rows; g.slice(1).forEach(id => mergedSkip.add(id));
+});
+POSTERS.forEach(row => {
+  const [id, unit, x, y, face, w, pw0] = row; if (mergedSkip.has(id)) return;
+  const grp = row.group || [row]; let X = x, Y = y, pw = pw0, label = id;
+  if (row.group) { const a = grp[0], b = grp[grp.length - 1]; X = (a[2] + b[2])/2; Y = (a[3] + b[3])/2; pw = Math.hypot(b[2] - a[2], b[3] - a[3])/100 + .9; label = id + '–' + b[0]; }   // 寬度 = 首尾中心距離 + 一張海報寬
+  const m = plane(pw || .9, 1.25, new THREE.MeshBasicMaterial({ map: posterTex(label, unit, pw) }), X, Y, 1.58, face, .075);
+  const it = { id, kind:'poster', unit, title: unit || '單位待確認', x:X, y:Y, face, wall:w, label: row.group ? label : undefined, ids: grp.map(r => r[0]),
+    where: `${WALL_NAME[w]}・${FACE_NAME[face]}`, shots: WALL_SHOTS[w] || [] };
+  register(m, it); grp.forEach(r => { posterMesh[r[0]] = m; items[r[0]] = it; });   // 組內每個編號都指向同一張海報與同一個資訊卡
 });
 loadPosters();
 // 特殊位置：主視覺、舞台螢幕、品牌牆、書牆
@@ -1002,14 +1015,14 @@ document.querySelectorAll('.views [data-view]').forEach(b => b.onclick = () => {
 /* ───────── 資訊卡與清單 ───────── */
 const $ = id => document.getElementById(id);
 const sheet = $('sheet'), drawer = $('drawer');
-const order = POSTERS.map(p => p[0]).concat(['A42','A43','A44','A45','A45-1','A46']).sort((a, b) => a.localeCompare(b, 'en', { numeric:true }));
+const order = POSTERS.map(p => p[0]).filter(id => !mergedSkip.has(id)).concat(['A42','A43','A44','A45','A45-1','A46']).sort((a, b) => a.localeCompare(b, 'en', { numeric:true }));
 let current = null;
 function select(id) {
   exitWalk();
   const it = items[id]; if (!it) return;
   if (it.kind === 'guide') { it.run(); return; }   // 點副院長：開始導覽，不開資訊卡
   current = id; document.body.classList.add('sheetopen'); drawer.classList.remove('open'); $('hint').classList.add('off');
-  $('sCode').textContent = it.id; $('sCode').className = 'code' + (it.kind === 'poster' || it.kind === 'spot' ? '' : ' z');
+  $('sCode').textContent = it.label || it.id; $('sCode').className = 'code' + (it.kind === 'poster' || it.kind === 'spot' ? '' : ' z');
   $('sTitle').textContent = it.title; $('sWhere').textContent = it.where;
   let h = '';
   if (it.kind === 'poster') {
@@ -1017,7 +1030,7 @@ function select(id) {
     if (!it.unit) h += `<div class="note">位置圖上這個編號沒有標示單位，請確認後補上。</div>`;
     else h += `<p>這是 <b>${it.unit}</b> 的海報位置${same.length > 1 ? `，該單位共有 ${same.length} 面` : ''}。</p>`;
     if (same.length > 1) h += `<div class="chips">${same.map(s => `<button data-go="${s}" class="${s === id ? 'on' : ''}">${s}</button>`).join('')}</div>`;
-    const c = (window.CONTENT || {})[id] || {};
+    const c = (window.CONTENT || {})[it.id] || (window.CONTENT || {})[id] || {};
     if (c.title) $('sTitle').textContent = c.title, $('sWhere').textContent = `${it.unit || '單位待確認'}・${it.where}`;
     if (c.text) h += String(c.text).split(/\n+/).map(t => `<p>${t.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</p>`).join('');
     if (c.video) h += `<div class="shots"><video controls playsinline preload="metadata" src="posters/${c.video}"></video></div>`;
@@ -1025,7 +1038,7 @@ function select(id) {
     if (!c.text && !c.video && !it.img) h += `<div class="note">海報內容尚未提供。之後可在這裡放海報圖檔、介紹文字或影片。</div>`;
   } else h += `<p>${it.desc}</p>`;
   if (it.shots && it.shots.length) h += `<div class="lbl">設計圖</div><div class="shots">${it.shots.map(s => `<img loading="lazy" src="${A}${s}.jpg" alt="${it.title} 設計圖">`).join('')}</div>`;
-  if (it.kind === 'poster' || it.kind === 'spot') { const i = order.indexOf(id); h += `<div class="nav2"><button data-go="${order[(i-1+order.length)%order.length]}">← 上一個</button><button data-go="${order[(i+1)%order.length]}">下一個 →</button></div>`; }
+  if (it.kind === 'poster' || it.kind === 'spot') { const i = order.indexOf(it.id); h += `<div class="nav2"><button data-go="${order[(i-1+order.length)%order.length]}">← 上一個</button><button data-go="${order[(i+1)%order.length]}">下一個 →</button></div>`; }
   $('sCont').innerHTML = h; $('sCont').scrollTop = 0; sheet.classList.add('open');
   document.querySelectorAll('.views [data-view]').forEach(b => b.setAttribute('aria-pressed', 'false'));
   // 鏡頭與選取框
@@ -1041,7 +1054,7 @@ function select(id) {
     const g = m.geometry.parameters; frame.scale.set(g.width + .14, g.height + .14, 1);
     frame.position.copy(m.position).addScaledVector(n, -.012); frame.quaternion.copy(m.quaternion); frame.visible = true;
     const tall = camera.aspect < 1, right = new THREE.Vector3(n.z, 0, -n.x), sh = wide ? 1.2 : 0;
-    const dist = Math.max(4.3, g.height*2.1, g.width*2.6) * (tall ? 1.55 : 1);
+    const dist = Math.max(4.3, g.height*2.1, g.width*3.2) * (tall ? 1.55 : 1);
     const tgt = m.position.clone().addScaledVector(right, sh); tgt.y -= wide ? .1 : (tall ? 1.3 : .9);
     const pos = m.position.clone().addScaledVector(n, dist).addScaledVector(right, sh); pos.y = tall ? 4.2 : 3.0;
     // 鏡頭若會卡進牆或拱門，就往前拉到障礙物前面
