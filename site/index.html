@@ -761,7 +761,7 @@ const host = (() => {
   return o;
 })();
 
-// 吳彬安副院長：站在 A24 旁，面向鏡頭；點他顯示「歡迎參觀花蓮慈院攤位」
+// 吳彬安副院長：站在 A24 旁，面向鏡頭；點他顯示「歡迎參觀AI中心攤位」
 const vice = (() => {
   const POS = [760, 545];
   const g = new THREE.Group(), m = new THREE.Group(), say2 = document.getElementById('say2');
@@ -771,7 +771,7 @@ const vice = (() => {
   const rig = makeRig(m, 'vice3d.glb', 2.0/1.9);
   const o = { m:g, up:0, yaw:0, pitch:0, wt:0, sayUntil:0 };
   const it_ = { id:'導覽', kind:'guide', unit:'吳彬安副院長', title:'吳彬安副院長', where:'前方中央展示牆旁', desc:'', shots:[], run: () => {
-    closeSheet(); flyTo([6.3, 1.8, 6.2], [7.6, 1.3, 9.4], 1000); say2.textContent = '歡迎參觀花蓮慈院攤位'; o.sayUntil = performance.now() + 4500; } };
+    closeSheet(); flyTo([6.3, 1.8, 6.2], [7.6, 1.3, 9.4], 1000); say2.textContent = '歡迎參觀AI中心攤位'; o.sayUntil = performance.now() + 4500; } };
   items['導覽'] = it_; proxy.userData.it = it_; it_.mesh = proxy; pick.push(proxy);
   o.step = (now, dt, cam) => {
     if (!rig.ready) return;
