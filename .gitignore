@@ -3,3 +3,6 @@
 
 # 由 build_deploy.py 產生的壓縮檔（內容與 expo-deploy/ 相同，可隨時重建）
 expo-deploy.zip
+
+# 海報縮圖前的原檔備份（體積大，不進版本控制）
+posters_original/

@@ -48,4 +48,4 @@ window.CONTENT = {
   "A41": { title: "", text: "", video: "" },   // 中醫部
   "A44": { title: "", text: "", video: "" },   // 單位待確認
 };
-window.POSTER_FILES = [];   // 由 update_poster_list.py 自動產生，請勿手改
+window.POSTER_FILES = ["A01.jpg", "A02.jpg", "A06.jpg", "A07.jpg", "A08.jpg", "A09.jpg", "A11.jpg", "A12.jpg", "A13.jpg", "A14.jpg", "A16.jpg", "A17.jpg", "A22.jpg", "A24.jpg", "A25.jpg", "A26.jpg", "A29.jpg", "A31.jpg", "A41.jpg", "A42.jpg", "A43.jpg"];   // 由 update_poster_list.py 自動產生，請勿手改
